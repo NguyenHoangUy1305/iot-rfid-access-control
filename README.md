@@ -14,7 +14,6 @@
 
 > 📘 **TÀI LIỆU KỸ THUẬT & LÝ THUYẾT ĐẦY ĐỦ:** Xem chi tiết toàn bộ lý thuyết, công thức vật lý, sơ đồ nối dây và quy trình thực hiện tại [`docs/SO_DO_KY_THUAT_VA_LY_THUYET.md`](./docs/SO_DO_KY_THUAT_VA_LY_THUYET.md) hoặc xem lộ trình 10 tuần tại [`docs/ROADMAP_KY_THUAT.md`](./docs/ROADMAP_KY_THUAT.md).
 
-> 🛒 **GIỎ HÀNG MUA SẮM (~380k) & KẾ HOẠCH TỪNG NGÀY (06/10):** Xem danh mục linh kiện Shopee trọn gói và lịch trình tuần 1 tại [docs/GIO_HANG_MUA_SAM_VA_LO_TRINH_TONG.md](./docs/GIO_HANG_MUA_SAM_VA_LO_TRINH_TONG.md).
 
 ---
 
