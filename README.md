@@ -1,4 +1,7 @@
 # 🚪 HỆ THỐNG KIỂM SOÁT CỬA RFID & IOT TÍCH HỢP PHẦN MỀM DESKTOP
+
+[![CI](https://github.com/NguyenHoangUy1305/iot-rfid-access-control/actions/workflows/ci.yml/badge.svg)](https://github.com/NguyenHoangUy1305/iot-rfid-access-control/actions/workflows/ci.yml)
+
 > **Tên đề tài:** Xây dựng hệ thống kiểm soát truy cập cửa ứng dụng RFID và IoT, tích hợp phần mềm quản lý desktop và cơ chế phát hiện truy cập bất thường  
 > **English Title:** Development of an IoT-Based RFID Door Access Control System with Desktop Management Software and Abnormal Access Detection  
 > **Thời gian:** Tháng 10/2026 - Tháng 02/2027  

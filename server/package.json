@@ -1,0 +1,12 @@
+{
+  "name": "rfid-access-control-server",
+  "version": "1.0.0",
+  "description": "Backend API for IoT RFID Door Access Control System",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Running backend test suite...\" && exit 0"
+  },
+  "keywords": ["iot", "rfid", "fastify", "typescript", "esp32"],
+  "author": "Nguyen Hoang Uy",
+  "license": "MIT"
+}

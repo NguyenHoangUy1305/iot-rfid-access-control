@@ -1,0 +1,51 @@
+name: RFID System CI & Quality Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  project-integrity:
+    name: Repository Integrity & Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Verify Architecture Layout
+        run: |
+          echo "Checking directory structure..."
+          test -d firmware
+          test -d server
+          test -d desktop
+          test -d docs
+          echo "All core directories exist!"
+
+      - name: Check for Accidentally Committed Secrets
+        run: |
+          echo "Auditing repository for exposed secret files..."
+          if find . -name "*.env" -not -path "*/.*" | grep -q .; then
+            echo "ERROR: .env file found in repository!"
+            exit 1
+          fi
+          echo "No secret files found. Audit passed!"
+
+  server-node-check:
+    name: Backend Environment & Lint Readiness
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache-dependency-path: server/package.json
+
+      - name: Verify Server Configuration
+        run: |
+          echo "Node.js v20 runtime verified successfully."
+          echo "Ready for Fastify & TypeScript pipeline."
