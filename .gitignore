@@ -1,0 +1,7 @@
+node_modules/
+.env
+dev.db
+dev.db-journal
+.pio/
+build/
+dist/
