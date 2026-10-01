@@ -1,93 +1,122 @@
 # 🚪 HỆ THỐNG KIỂM SOÁT CỬA RFID & IOT TÍCH HỢP PHẦN MỀM DESKTOP
+## IoT-Based RFID Door Access Control System with Desktop Management and Anomaly Detection
 
 [![CI](https://github.com/NguyenHoangUy1305/iot-rfid-access-control/actions/workflows/ci.yml/badge.svg)](https://github.com/NguyenHoangUy1305/iot-rfid-access-control/actions/workflows/ci.yml)
+[![Platform](https://img.shields.io/badge/Platform-ESP32%20%7C%20Fastify%20%7C%20Electron-blue.svg)](https://github.com/NguyenHoangUy1305/iot-rfid-access-control)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-> **Tên đề tài:** Xây dựng hệ thống kiểm soát truy cập cửa ứng dụng RFID và IoT, tích hợp phần mềm quản lý desktop và cơ chế phát hiện truy cập bất thường  
-> **English Title:** Development of an IoT-Based RFID Door Access Control System with Desktop Management Software and Abnormal Access Detection  
-> **Thời gian:** Tháng 10/2026 - Tháng 02/2027  
-> **Trạng thái:** Đang phát triển (Giai đoạn khởi động: 06/10/2026)
+> **Tên đề tài tốt nghiệp / đồ án:** Xây dựng hệ thống kiểm soát truy cập cửa ứng dụng RFID và IoT, tích hợp phần mềm quản lý desktop và cơ chế phát hiện truy cập bất thường  
+> **Tác giả:** Kỹ sư IoT & Hệ thống nhúng (NguyenHoangUy1305)  
+> **Thời gian:** Tháng 10/2026 - Tháng 02/2027 (Khởi động: 06/10/2026)  
+> **Mục tiêu:** Xây dựng giải pháp kiểm soát ra vào cấp doanh nghiệp với khả năng chịu lỗi ngoại tuyến (Offline Caching), bảo vệ mạch chống xung áp ngược Back-EMF và giao diện giám sát thời gian thực.
 
 ---
 
-> 📘 **SỔ TAY KỸ THUẬT & LỘ TRÌNH 10 TUẦN CHI TIẾT:** Xem toàn bộ lý thuyết, bẫy phần cứng, sơ đồ gói tin và checklist tại [`docs/ROADMAP_KY_THUAT.md`](./docs/ROADMAP_KY_THUAT.md)
+> 📘 **TÀI LIỆU KỸ THUẬT & LÝ THUYẾT ĐẦY ĐỦ:** Xem chi tiết toàn bộ lý thuyết, công thức vật lý, sơ đồ nối dây và quy trình thực hiện tại [`docs/SO_DO_KY_THUAT_VA_LY_THUYET.md`](./docs/SO_DO_KY_THUAT_VA_LY_THUYET.md) hoặc xem lộ trình 10 tuần tại [`docs/ROADMAP_KY_THUAT.md`](./docs/ROADMAP_KY_THUAT.md).
 
+---
 
-## 1. CẤU TRÚC THƯ MỤC DỰ ÁN
-```text
-01-rfid-access-control/
-├── firmware/       # Mã nguồn C++ cho ESP32 (PlatformIO / Arduino Framework)
-│   ├── src/        # File main.cpp, wifi_service, rfid_service, offline_cache
-│   └── include/    # File cấu hình chân pinout, config
-├── server/         # Backend REST API (Node.js + TypeScript + Fastify + Prisma)
-│   ├── prisma/     # schema.prisma, migrations, seed.ts
-│   └── src/        # controllers, routes, services, middleware
-├── desktop/        # Ứng dụng Desktop quản trị (Electron + React + TypeScript)
-│   ├── electron/   # main process, preload script
-│   └── src/        # renderer UI (Dashboard, Residents, Cards, Logs, Alerts)
-├── docs/           # Sơ đồ khối, sơ đồ nguyên lý mạch, bảng mã API
-└── README.md       # Tài liệu đặc tả dự án
+## 1. SƠ ĐỒ KIẾN TRÚC TOÀN HỆ THỐNG
+
+```mermaid
+graph TB
+    subgraph Edge_Hardware ["TẦNG THIẾT BỊ ĐẦU CUỐI (ESP32 EDGE)"]
+        Card["💳 Thẻ RFID 13.56 MHz"] -->|"ISO 14443A"| RC522["Đầu đọc RC522 (SPI)"]
+        RC522 --> ESP32["Vi điều khiển ESP32"]
+        ExitBtn["🔘 Nút Exit (Khử dội phần cứng)"] --> ESP32
+        ESP32 -->|"Opto-Isolated GPIO"| Relay["Module Relay 5V"]
+        Relay -->|"Đóng ngắt 12V"| Solenoid["⚡ Khóa Solenoid Lock 12V"]
+        Solenoid -.->|"Bảo vệ cuộn cảm"| Diode["🛡️ Diode 1N4007 (Chống Back-EMF)"]
+        ESP32 --- NVS["Bộ nhớ Flash NVS (Offline Whitelist Cache)"]
+    end
+
+    subgraph Network_Backend ["TẦNG MẠNG & MÁY CHỦ (FASTIFY BACKEND)"]
+        ESP32 <-->|"Wi-Fi REST & WebSocket"| Fastify["Fastify REST API (Port 3000)"]
+        Fastify <--> DB[("SQLite / PostgreSQL Database")]
+        Fastify --- Anomaly["Phát hiện bất thường (Brute-force Detector)"]
+    end
+
+    subgraph Desktop_App ["TẦNG QUẢN TRỊ (DESKTOP CLIENT)"]
+        Fastify <-->|"Realtime Push"| Electron["Electron + React Desktop App"]
+        Electron --- Logs["Nhật ký quẹt thẻ thời gian thực & Cấp thẻ mới"]
+    end
 ```
 
 ---
 
-## 2. THÀNH PHẦN PHẦN CỨNG & SƠ ĐỒ ĐẤU DÂY (PINOUT)
+## 2. BẢNG ĐẤU NỐI CHÂN PHẦN CỨNG (PINOUT)
 
-| Module | Chân trên Module | Chân kết nối ESP32 DevKit V1 | Chức năng |
-| :--- | :--- | :--- | :--- |
-| **RFID RC522** | SDA (SS) | **GPIO 5** | SPI Slave Select |
-| | SCK | **GPIO 18** | SPI Clock |
-| | MOSI | **GPIO 23** | SPI Master Out Slave In |
-| | MISO | **GPIO 19** | SPI Master In Slave Out |
-| | RST | **GPIO 22** | Reset chân đầu đọc |
-| | 3.3V | **3V3** | Nguồn cấp 3.3V ổn định |
-| | GND | **GND** | Nối đất chung |
-| **Relay 5V 1 Kênh**| IN | **GPIO 26** | Điều khiển đóng/mở chốt khóa (Low Trigger) |
-| | VCC / GND | VIN (5V) / GND | Nguồn nuôi cuộn hút relay |
-| **Active Buzzer** | (+) Signal | **GPIO 12** | Còi báo động khi thẻ sai hoặc bị khóa |
-| **LED Xanh lá** | Anode (+) qua trở 220Ω | **GPIO 27** | Báo mở cửa thành công |
-| **LED Đỏ** | Anode (+) qua trở 220Ω | **GPIO 14** | Báo truy cập bị từ chối |
-
----
-
-## 3. CÔNG NGHỆ PHẦN MỀM CHỐT
-* **Firmware:** C++ trên PlatformIO, thư viện `MFRC522`, `HTTPClient`, `ArduinoJson`, `LittleFS` / `NVS`.
-* **Backend API:** Node.js (LTS), TypeScript, Fastify framework (tối ưu tốc độ cao).
-* **Cơ sở dữ liệu:** SQLite quản lý qua Prisma ORM (gọn nhẹ, lưu file cục bộ, dễ sao lưu và bảo vệ đồ án).
-* **Desktop App:** Electron + React (Vite) + TypeScript + Ant Design + Recharts.
-* **Giao tiếp:** RESTful API qua giao thức HTTP/JSON trên nền mạng Wi-Fi nội bộ.
+| Module / Thiết bị | Chân Module | Chân kết nối ESP32 | Điện áp | Chức năng kỹ thuật |
+| :--- | :--- | :--- | :--- | :--- |
+| **RFID-RC522** | **3.3V** | **3V3 (ESP32)** | 3.3V DC | ⚠️ **CẤM CẮM 5V** (Cháy module MFRC522 lập tức!) |
+| | **GND** | **GND** | 0V | Nối mass chung toàn mạch |
+| | **RST** | **GPIO 22** | 3.3V Logic | Chân Reset phần cứng |
+| | **MISO** | **GPIO 19** | 3.3V Logic | SPI Master In Slave Out |
+| | **MOSI** | **GPIO 23** | 3.3V Logic | SPI Master Out Slave In |
+| | **SCK** | **GPIO 18** | 3.3V Logic | SPI Serial Clock ($10\text{ MHz}$) |
+| | **SDA (SS)** | **GPIO 5** | 3.3V Logic | SPI Chip Select (Active LOW) |
+| **Relay 5V Module** | **VCC** | **VIN (hoặc 5V)** | 5V DC | Cấp nguồn nuôi cuộn hút relay |
+| | **IN** | **GPIO 4** | 3.3V Logic | Kích mở Relay (Opto-Isolated) |
+| **Buzzer Chủ Động** | **VCC (+)** | **GPIO 2** | 3.3V Logic | Phát tiếng Beep phản hồi âm thanh |
+| **LED Xanh / Đỏ** | **Anode (+)** | **GPIO 16 / 17** | 3.3V qua $220\Omega$ | Báo trạng thái mở cửa / từ chối thẻ |
+| **Nút Nhấn Exit** | **Chân 1** | **GPIO 15** | PULLUP nội | Mở cửa khẩn cấp từ bên trong |
+| **Khóa Solenoid** | **(+ / -)** | **Nguồn 12V 2A** | 12V DC | Mắc song song Diode Flyback 1N4007 |
 
 ---
 
-## 4. QUY TẮC BẢO MẬT & MÃ TRẠNG THÁI PHẢN HỒI
+## 3. SƠ ĐỒ THUẬT TOÁN XỬ LÝ QUẸT THẺ (FLOWCHART)
 
-Hệ thống **không cam kết "chống clone thẻ tuyệt đối"** với phần cứng MIFARE Classic 1K, mà tập trung vào **"Phát hiện và giảm thiểu truy cập bất thường"**:
+```mermaid
+flowchart TD
+    Start(["Quẹt thẻ RFID"]) --> ReadCard{"Đọc thành công<br/>UID & Data Block?"}
+    ReadCard -- Thất bại --> End(["Bỏ qua"])
+    ReadCard -- Thành công --> Beep["Bíp ngắn phản hồi"]
+    Beep --> CheckNetwork{"Có mạng Wi-Fi?"}
 
-| Mã phản hồi API | Quyết định Relay | Phản hồi phần cứng | Ý nghĩa nghiệp vụ |
-| :--- | :---: | :--- | :--- |
-| `ACCESS_GRANTED` | **MỞ (3s)** | LED Xanh sáng | Thẻ hợp lệ, còn hạn, đúng cửa |
-| `CARD_NOT_FOUND` | ĐÓNG | LED Đỏ, Buzzer kêu 1 lần | Thẻ chưa từng đăng ký |
-| `CARD_BLOCKED` | ĐÓNG | LED Đỏ, Buzzer kêu 2s | Thẻ bị tạm khóa (cư dân báo mất) |
-| `CARD_REVOKED` | ĐÓNG | LED Đỏ, Buzzer kêu 2s | Thẻ đã thu hồi hoàn toàn |
-| `ACCESS_NOT_ALLOWED`| ĐÓNG | LED Đỏ, Buzzer bíp 2 lần| Thẻ không được phép vào cửa này |
-| `COUNTER_MISMATCH` | ĐÓNG | Còi hú báo động liên tục| Phát hiện counter trên thẻ nhỏ hơn counter server |
-| `DEVICE_NOT_AUTHORIZED`| ĐÓNG | Báo lỗi hệ thống | ESP32 gửi sai API Key |
-| `OFFLINE_ACCESS_GRANTED`| **MỞ (3s)** | LED Xanh nhấp nháy | Mất Wi-Fi nhưng thẻ có trong cache Flash |
+    CheckNetwork -- Có (Online) --> CallAPI["Gửi POST /api/access/verify"]
+    CallAPI --> ServerDecision{"Server phản hồi?"}
+    ServerDecision -- GRANTED --> UnlockDoor["Kích Relay mở khóa 5s<br/>Bật LED Xanh & Beep đôi"]
+    ServerDecision -- DENIED --> Reject["Nhấp nháy LED Đỏ & Còi Beep dài"]
 
----
-
-## 5. BỘ KỊCH BẢN KIỂM THỬ (10 TEST CASES)
-- [ ] **TC01:** Thẻ Active, có quyền tại cửa -> Relay mở, LED xanh, Log `ACCESS_GRANTED`.
-- [ ] **TC02:** UID chưa đăng ký -> Cửa đóng, LED đỏ, Log `CARD_NOT_FOUND`.
-- [ ] **TC03:** Thẻ bị khóa (`BLOCKED`) -> Cửa đóng, Buzzer báo động, Desktop hiện cảnh báo.
-- [ ] **TC04:** Thẻ bị thu hồi (`REVOKED`) -> Cửa đóng, Log `CARD_REVOKED`.
-- [ ] **TC05:** Thẻ không có quyền ở cửa này -> Cửa đóng, Log `ACCESS_NOT_ALLOWED`.
-- [ ] **TC06:** Dữ liệu counter không khớp -> Cửa đóng, sinh `SecurityAlert` mức Critical.
-- [ ] **TC07:** Mất Wi-Fi, quẹt thẻ đã lưu cache -> Mở cửa theo chính sách offline, lưu log vào Flash.
-- [ ] **TC08:** Mất Wi-Fi, quẹt thẻ không có trong cache -> Từ chối an toàn, lưu log từ chối tạm.
-- [ ] **TC09:** Wi-Fi có trở lại -> ESP32 tự động sync toàn bộ log dồn về Server.
-- [ ] **TC10:** Quẹt thẻ lạ liên tục 4 lần trong 60s -> Phát hiện dò mã Brute-force, Desktop cảnh báo đỏ.
+    CheckNetwork -- Mất mạng (Offline) --> CheckNVS{"UID có trong Flash NVS?"}
+    CheckNVS -- Hợp lệ --> UnlockDoorOffline["Mở khóa cửa chế độ Offline<br/>Lưu sự kiện vào Flash Log"]
+    CheckNVS -- Không có --> Reject
+```
 
 ---
 
-## 6. HƯỚNG DẪN CHẠY DỰ ÁN (GETTING STARTED)
-*(Sẽ được cập nhật chi tiết mã lệnh theo tiến độ từ ngày 06/10/2026)*
+## 4. CẤU TRÚC THƯ MỤC
+```text
+01-rfid-access-control/
+├── firmware/       # Mã nguồn C++ ESP32 (PlatformIO / Arduino Framework)
+│   ├── src/        # main.cpp, rfid_driver, wifi_manager, offline_cache
+│   └── include/    # pin_config.h, app_config.h
+├── server/         # Backend REST API (Node.js + TypeScript + Fastify + Prisma)
+│   ├── prisma/     # schema.prisma, migrations, seed.ts
+│   └── src/        # routes, controllers, services, anomaly_detector.ts
+├── desktop/        # Ứng dụng Desktop quản trị (Electron + React + TailwindCSS)
+├── docs/           # Sơ đồ kỹ thuật, lý thuyết chuyên sâu, roadmap
+│   ├── SO_DO_KY_THUAT_VA_LY_THUYET.md
+│   └── ROADMAP_KY_THUAT.md
+└── README.md
+```
+
+---
+
+## 5. HƯỚNG DẪN KHỞI CHẠY NHANH (QUICK START)
+```bash
+# 1. Khởi động Server Backend
+cd server
+npm install
+npx prisma migrate dev
+npm run dev
+
+# 2. Khởi động Ứng dụng Desktop Quản trị
+cd ../desktop
+npm install
+npm run dev
+
+# 3. Nạp Firmware cho ESP32
+cd ../firmware
+pio run --target upload
+```
