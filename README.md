@@ -47,6 +47,8 @@ graph TB
 
 ## 2. BẢNG ĐẤU NỐI CHÂN PHẦN CỨNG (PINOUT)
 
+> ⚡ **Lưu ý thiết kế chống treo boot (Strapping Pins):** Hệ thống sử dụng **GPIO 26** cho Relay, **GPIO 25** cho Buzzer, **GPIO 27/33** cho LED và **GPIO 32** cho Nút Exit. Hoàn toàn giải phóng các chân Boot Strapping (GPIO 0, 2, 4, 12, 15) giúp ESP32 khởi động 100% tin cậy, không bao giờ rơi vào Flash Download Mode hoặc giật Relay ngoài ý muốn khi bật nguồn!
+
 | Module / Thiết bị | Chân Module | Chân kết nối ESP32 | Điện áp | Chức năng kỹ thuật |
 | :--- | :--- | :--- | :--- | :--- |
 | **RFID-RC522** | **3.3V** | **3V3 (ESP32)** | 3.3V DC | ⚠️ **CẤM CẮM 5V** (Cháy module MFRC522 lập tức!) |
@@ -54,14 +56,20 @@ graph TB
 | | **RST** | **GPIO 22** | 3.3V Logic | Chân Reset phần cứng |
 | | **MISO** | **GPIO 19** | 3.3V Logic | SPI Master In Slave Out |
 | | **MOSI** | **GPIO 23** | 3.3V Logic | SPI Master Out Slave In |
-| | **SCK** | **GPIO 18** | 3.3V Logic | SPI Serial Clock ($10\text{ MHz}$) |
-| | **SDA (SS)** | **GPIO 5** | 3.3V Logic | SPI Chip Select (Active LOW) |
+| | **SCK** | **GPIO 18** | 3.3V Logic | SPI Serial Clock (10 MHz) |
+| | **SDA (SS)** | **GPIO 21** | 3.3V Logic | SPI Chip Select (Active LOW, an toàn) |
 | **Relay 5V Module** | **VCC** | **VIN (hoặc 5V)** | 5V DC | Cấp nguồn nuôi cuộn hút relay |
-| | **IN** | **GPIO 4** | 3.3V Logic | Kích mở Relay (Opto-Isolated) |
-| **Buzzer Chủ Động** | **VCC (+)** | **GPIO 2** | 3.3V Logic | Phát tiếng Beep phản hồi âm thanh |
-| **LED Xanh / Đỏ** | **Anode (+)** | **GPIO 16 / 17** | 3.3V qua $220\Omega$ | Báo trạng thái mở cửa / từ chối thẻ |
-| **Nút Nhấn Exit** | **Chân 1** | **GPIO 15** | PULLUP nội | Mở cửa khẩn cấp từ bên trong |
-| **Khóa Solenoid** | **(+ / -)** | **Nguồn 12V 2A** | 12V DC | Mắc song song Diode Flyback 1N4007 |
+| | **GND** | **GND** | 0V | Nối mass chung |
+| | **IN** | **GPIO 26** | 3.3V Logic | Kích mở Relay (Cách ly quang PC817, tránh strapping pin GPIO 4) |
+| **Buzzer Chủ Động** | **VCC (+)** | **GPIO 25** | 3.3V Logic | Phát tiếng Beep phản hồi (Tránh strapping pin GPIO 2) |
+| | **GND (-)** | **GND** | 0V | Nối mass chung |
+| **LED Xanh (Thành công)** | **Anode (+)** | **GPIO 27** | 3.3V qua trở 220Ω | Báo xác thực thẻ hợp lệ / mở cửa |
+| | **Cathode (-)** | **GND** | 0V | Nối mass chung |
+| **LED Đỏ (Từ chối)** | **Anode (+)** | **GPIO 33** | 3.3V qua trở 220Ω | Báo từ chối thẻ / Cảnh báo an ninh |
+| | **Cathode (-)** | **GND** | 0V | Nối mass chung |
+| **Nút Nhấn Exit** | **Chân 1** | **GPIO 32** | PULLUP nội | Mở cửa khẩn cấp từ bên trong (RC Debounce, tránh GPIO 15) |
+| | **Chân 2** | **GND** | 0V | Nối mass chung |
+| **Khóa Solenoid** | **(+ / -)** | **Nguồn 12V 2A** | 12V DC | Mắc song song Diode Flyback 1N4007 ngược chiều để dập dòng Back-EMF |
 
 ---
 

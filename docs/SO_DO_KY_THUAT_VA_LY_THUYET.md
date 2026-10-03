@@ -3,264 +3,149 @@
 
 > **Tác giả:** Kỹ sư IoT & Hệ thống nhúng (NguyenHoangUy1305)  
 > **Repository:** [NguyenHoangUy1305/iot-rfid-access-control](https://github.com/NguyenHoangUy1305/iot-rfid-access-control)  
-> **Thời gian thực hiện:** Tháng 11/2026 - Tháng 01/2027 (Khởi động: 01/11/2026)  
-> **Mục đích:** Cung cấp tài liệu kỹ thuật chuẩn công nghiệp bao gồm toàn bộ cơ sở lý thuyết điện từ, cấu trúc bộ nhớ vi mạch, nguyên lý chống xung ngược cảm ứng, sơ đồ đấu nối mạch chi tiết và sơ đồ luồng thuật toán vận hành của hệ thống kiểm soát cửa thông minh.
+> **Phiên bản:** 1.0 (MVP + Hướng nâng cấp mở rộng)  
+> **Thời gian:** Tháng 11/2026 - Tháng 01/2027 (Khởi động: 01/11/2026)  
+> **Phạm vi an toàn:** Mô hình thử nghiệm DC điện áp thấp (12V / 5V / 3.3V); tuyệt đối không nối điện lưới xoay chiều 220V.
 
 ---
 
 ## MỤC LỤC
-1. [PHẦN 1: CƠ SỞ LÝ THUYẾT & NGUYÊN LÝ HOẠT ĐỘNG CHUYÊN SÂU](#phần-1-cơ-sở-lý-thuyết--nguyên-lý-hoạt-động-chuyên-sâu)
-   - 1.1 Sóng vô tuyến RFID 13.56 MHz & Tiêu chuẩn ISO/IEC 14443 Type A
-   - 1.2 Nguyên lý cảm ứng điện từ Faraday & Cơ chế biến điệu tải (Load Modulation)
-   - 1.3 Cấu trúc bộ nhớ vi mạch thẻ MIFARE Classic 1K & Bảng phân tích Access Bits
-   - 1.4 Lỗ hổng Clone thẻ (Magic Card UID Gen 1/2) & Cơ chế bảo mật đa tầng
-   - 1.5 Mạch công suất & Tải cảm ứng: Hiện tượng Back-EMF và Diode Flyback 1N4007
-   - 1.6 Mạch cách ly quang Optocoupler PC817 chống nhiễu xuyên mass
-   - 1.7 Hiện tượng dội phím cơ khí (Switch Contact Bounce) & Giải thuật Debounce
-   - 1.8 Giao thức truyền thông vi điều khiển: Chuẩn SPI vs I2C vs Wiegand 26/34
-   - 1.9 Kiến trúc mạng phân tán & Khả năng chịu lỗi ngoại tuyến (Offline Caching NVS)
-2. [PHẦN 2: SƠ ĐỒ KỸ THUẬT & SƠ ĐỒ ĐẤU NỐI MẠCH (PINOUT)](#phần-2-sơ-đồ-kỹ-thuật--sơ-đồ-đấu-nối-mạch-pinout)
-   - 2.1 Bảng ánh xạ chân GPIO chi tiết (Hardware Pinout Matrix)
-   - 2.2 Sơ đồ nguyên lý mạch điện phần cứng (Hardware Schematics)
-   - 2.3 Sơ đồ phân phối nguồn điện 2 tầng (Power Distribution & Buck Converter)
-   - 2.4 Sơ đồ kiến trúc kỹ thuật toàn hệ thống (System Architecture Diagram)
-3. [PHẦN 3: SƠ ĐỒ LÀM & SƠ ĐỒ QUY TRÌNH THỰC HIỆN DỰ ÁN](#phần-3-sơ-đồ-làm--sơ-đồ-quy-trình-thực-hiện-dự-án)
-   - 3.1 Quy trình 6 bước triển khai thực chiến từ A-Z
-   - 3.2 Sơ đồ thuật toán xử lý quẹt thẻ (Card Verification Flowchart)
-   - 3.3 Sơ đồ máy trạng thái khóa cửa (Door State Machine)
-   - 3.4 Sơ đồ tuần tự giao tiếp hệ thống (Sequence Diagram)
+1. [PHẦN 1: MỤC TIÊU VÀ PHẠM VI BẢO MẬT](#phần-1-mục-tiêu-và-phạm-vi-bảo-mật)
+   - 1.1 Mục tiêu kỹ thuật cốt lõi
+   - 1.2 Giới hạn kỹ thuật của thẻ MIFARE Classic & Triết lý phòng thủ đa lớp (Defense-in-Depth)
+2. [PHẦN 2: CƠ SỞ LÝ THUYẾT ĐIỆN TỪ & NGUYÊN LÝ HOẠT ĐỘNG](#phần-2-cơ-sở-lý-thuyết-điện-từ--nguyên-lý-hoạt-động)
+   - 2.1 Sóng vô tuyến RFID 13.56 MHz & Tiêu chuẩn ISO/IEC 14443 Type A
+   - 2.2 Phương trình Maxwell-Faraday & Cơ chế nạp năng lượng cảm ứng Neumann
+   - 2.3 Cơ chế biến điệu tải (Load Modulation) trên sóng mang phụ Subcarrier 848 kHz
+   - 2.4 Cấu trúc bộ nhớ vi mạch thẻ MIFARE Classic 1K & Bảng phân tích Access Bits
+   - 2.5 Tải cảm ứng Solenoid Lock 12V: Năng lượng từ trường, Back-EMF và Diode Flyback 1N4007
+   - 2.6 Mạch cách ly quang Optocoupler PC817 chống nhiễu xuyên mass
+   - 2.7 Hiện tượng dội phím cơ khí (Contact Bounce) & Mạch lọc thông thấp RC 1ms
+   - 2.8 Chuẩn truyền thông SPI: Master/Slave, CPOL/CPHA Mode 0 vs I2C vs Wiegand 26/34
+   - 2.9 Phân định kiến trúc lưu trữ: Flash NVS (Whitelist) vs LittleFS (Log Queue)
+3. [PHẦN 3: SƠ ĐỒ KỸ THUẬT & SƠ ĐỒ ĐẤU NỐI MẠCH (PINOUT AN TOÀN)](#phần-3-sơ-đồ-kỹ-thuật--sơ-đồ-đấu-nối-mạch-pinout-an-toàn)
+   - 3.1 Bảng ánh xạ chân GPIO chốt an toàn (Loại bỏ hoàn toàn Strapping Pins)
+   - 3.2 Sơ đồ nguyên lý mạch điện phần cứng chi tiết (Hardware Schematics)
+   - 3.3 Sơ đồ phân phối nguồn điện 2 tầng (Power Distribution)
+   - 3.4 Sơ đồ kiến trúc kỹ thuật toàn hệ thống (System Architecture Diagram)
+4. [PHẦN 4: SƠ ĐỒ LÀM & SƠ ĐỒ QUY TRÌNH THỰC HIỆN DỰ ÁN](#phần-4-sơ-đồ-làm--sơ-đồ-quy-trình-thực-hiện-dự-án)
+   - 4.1 Quy trình 11 tuần triển khai thực chiến từ A-Z
+   - 4.2 Sơ đồ thuật toán xử lý quẹt thẻ (Card Verification Flowchart)
+   - 4.3 Sơ đồ máy trạng thái khóa cửa (Door State Machine)
+   - 4.4 Sơ đồ tuần tự giao tiếp hệ thống (Sequence Diagram)
+5. [PHẦN 5: TÀI LIỆU THAM KHẢO HỌC THUẬT](#phần-5-tài-liệu-tham-khảo-học-thuật)
 
 ---
 
-# PHẦN 1: CƠ SỞ LÝ THUYẾT & NGUYÊN LÝ HOẠT ĐỘNG CHUYÊN SÂU
+# PHẦN 1: MỤC TIÊU VÀ PHẠM VI BẢO MẬT
 
-### 1.1. Sóng vô tuyến RFID 13.56 MHz & Tiêu chuẩn ISO/IEC 14443 Type A
-Hệ thống sử dụng sóng vô tuyến dải tần cao **High Frequency (HF) 13.56 MHz** tuân theo tiêu chuẩn quốc tế **ISO/IEC 14443 Type A** (tiêu chuẩn phổ biến nhất thế giới dùng trong thẻ ra vào tòa nhà, thẻ xe buýt Metro và thẻ căn cước thông minh).
+### 1.1 Mục tiêu kỹ thuật cốt lõi
+Xây dựng một hệ thống kiểm soát cửa hoàn chỉnh từ phần cứng vi điều khiển đến phần mềm máy tính:
+- ESP32 đọc thẻ RFID qua module RC522, gửi yêu cầu xác thực tới máy chủ Fastify Backend qua mạng Wi-Fi bằng `X-Device-Token` riêng biệt.
+- Điều khiển đóng ngắt Relay khóa cửa Solenoid 12V, còi Buzzer phát âm thanh phản hồi và LED báo trạng thái trực quan.
+- Ứng dụng Desktop (Electron + React) cho phép ban quản lý cấp phát thẻ mới, khóa thẻ mất khẩn cấp, xem nhật ký quẹt thẻ thời gian thực và nhận cảnh báo an ninh.
+- Cơ chế vận hành ngoại tuyến độc lập (Offline Fallback Engine): Cửa vẫn mở bình thường khi mất kết nối mạng nhờ bảng Whitelist lưu trong NVS Flash, tự động đồng bộ nhật ký sau khi mạng phục hồi.
 
-* **Đặc tính sóng vô tuyến 13.56 MHz:**
-  - Bước sóng trong không gian:
-    $$\lambda = rac{c}{f_c} = rac{3 	imes 10^8 	ext{ m/s}}{13.56 	imes 10^6 	ext{ Hz}} pprox 22.12 	ext{ m}$$
-  - Khoảng cách đọc của thẻ thụ động (Passive RFID Tag) nằm trong vùng trường gần (Near-Field Reactive Region), nơi khoảng cách $r$ nhỏ hơn nhiều so với bước sóng Rayleigh:
-    $$r < rac{\lambda}{2\pi} pprox rac{22.12}{6.28} pprox 3.52 	ext{ m}$$
-    Thực tế khoảng cách quẹt thẻ thẻ tiếp xúc danh định đạt từ **$1 \sim 4	ext{ cm}$**.
+### 1.2 Giới hạn kỹ thuật của thẻ MIFARE Classic & Triết lý phòng thủ đa lớp (Defense-in-Depth)
+Trong các nghiên cứu an toàn thông tin kinh điển (như công trình của F. D. Garcia et al., ESORICS 2008), thuật toán mã hóa Crypto-1 của thẻ MIFARE Classic 1K đã được chứng minh là có thể bị giải mã trong thời gian ngắn, và các loại phôi thẻ thay đổi được UID ("Magic Card" UID Gen 1/2) được bán rộng rãi. Do đó, **UID không được coi là một khóa bảo mật tuyệt đối**.
 
----
-
-### 1.2. Nguyên lý cảm ứng điện từ Faraday & Cơ chế biến điệu tải (Load Modulation)
-
-* **Hiện tượng nạp năng lượng cảm ứng (Inductive Coupling):**
-  Cuộn anten trên mạch PCB của module đọc RC522 đóng vai trò là cuộn sơ cấp biến áp phát ra từ trường biến thiên $B(t)$ ở tần số $13.56	ext{ MHz}$. Khi thẻ RFID đi vào vùng từ trường này, cuộn dây phẳng gồm nhiều vòng bên trong thẻ đóng vai trò là cuộn thứ cấp hứng từ thông biến thiên $\Phi(t)$. Theo phương trình Maxwell-Faraday và định luật cảm ứng Neumann:
-  $$e = -rac{d\Phi}{dt} = -N rac{d}{dt} \iint_S ec{B}(t) \cdot dec{A}$$
-  Suất điện động cảm ứng $e$ được nắn dòng bởi mạch chỉnh lưu Diode Schottky tích hợp ngay bên trong chip thẻ và nạp vào tụ điện nội vi $C pprox 28	ext{ pF}$, tạo ra điện áp một chiều $V_{DD} pprox 2.5	ext{V} \sim 3.3	ext{V}$ cấp nguồn cho vi xử lý bên trong thẻ tự khởi động mà **hoàn toàn không cần pin nuôi** (Passive RFID Tag).
-
-* **Cơ chế truyền dữ liệu ngược bằng Biến điệu tải (Load Modulation):**
-  Thẻ RFID không có bộ phát sóng vô tuyến riêng. Để truyền dữ liệu ngược về đầu đọc RC522, vi xử lý trên thẻ đóng/ngắt một transistor tải điện trở song song với cuộn anten của chính nó theo nhịp bit dữ liệu.
-  - Khi transistor bật: Cuộn dây thẻ tiêu thụ thêm năng lượng từ trường của đầu đọc.
-  - Sự thay đổi dòng tiêu thụ này làm biến đổi nhẹ biên độ điện áp trên cuộn anten của đầu đọc RC522 (biến điệu biên độ ASK).
-  - Tín hiệu phản hồi được truyền trên sóng mang phụ (**Subcarrier**) có tần số:
-    $$f_s = rac{f_c}{16} = rac{13.56	ext{ MHz}}{16} = 848	ext{ kHz}$$
-  - **Mã hóa tín hiệu:**
-    - Chiều từ Đầu đọc $	o$ Thẻ: Sử dụng mã hóa **Modified Miller** với độ sâu điều chế $100\%$ ASK.
-    - Chiều từ Thẻ $	o$ Đầu đọc: Sử dụng mã hóa **Manchester** đồng bộ xung nhịp subcarrier $848	ext{ kHz}$.
+**Mục tiêu đúng đắn của dự án là xây dựng kiến trúc phòng vệ đa tầng (Defense-in-Depth):**
+1. **Xác thực thiết bị cửa:** Chỉ các thiết bị ESP32 sở hữu `X-Device-Token` hợp lệ mới được quyền gọi API xác thực.
+2. **Quản lý trạng thái thẻ tập trung:** Thẻ chỉ mở được cửa nếu cơ sở dữ liệu xác nhận trạng thái `ACTIVE` và còn hạn sử dụng. Khi có sự cố mất thẻ, quản trị viên khóa thẻ trên Desktop App thì thẻ lập tức bị vô hiệu hóa toàn hệ thống.
+3. **Phân quyền truy cập theo cửa (Door Permissions):** Cư dân chỉ mở được đúng cửa căn hộ hoặc cổng chung được cấp phép.
+4. **Nhật ký kiểm toán toàn diện (Audit Logging):** Ghi nhận đầy đủ mọi lượt quẹt thẻ thành công hoặc bị từ chối kèm dấu thời gian thực.
+5. **Thuật toán phát hiện bất thường (Rule-Based Anomaly Detection):** Tự động phát hiện các hành vi quét thẻ lạ liên tục hoặc dò mã brute-force để kích hoạt còi báo động.
+6. **Mở rộng Rolling Counter (Advanced):** Lưu trữ số đếm sử dụng trong Data Block của thẻ để phát hiện các bản sao thẻ cũ bị rollback.
 
 ---
 
-### 1.3. Cấu trúc bộ nhớ vi mạch thẻ MIFARE Classic 1K & Bảng phân tích Access Bits
-Thẻ MIFARE Classic 1K (sản xuất bởi hãng NXP Semiconductors) có tổng dung lượng bộ nhớ là **1024 bytes (1 KB)** được phân chia cực kỳ chặt chẽ:
-* Gồm **16 Sector** (Sector 0 đến Sector 15).
-* Mỗi Sector gồm **4 Block** (Block 0 đến Block 3), mỗi Block chứa đúng **16 bytes** dữ liệu ($16 	imes 4 	imes 16 = 1024	ext{ bytes}$).
+# PHẦN 2: CƠ SỞ LÝ THUYẾT ĐIỆN TỪ & NGUYÊN LÝ HOẠT ĐỘNG
 
-```text
-+----------+---------+-------------------------------------------------------+
-|  Sector  |  Block  | Chức năng & Nội dung chứa                             |
-+----------+---------+-------------------------------------------------------+
-| Sector 0 | Block 0 | Manufacturer Block: Chứa UID (4/7 bytes) & Dữ liệu SX  |
-|          | Block 1 | Data Block 1 (Lưu mã sinh viên / mã căn hộ)          |
-|          | Block 2 | Data Block 2 (Lưu mã Rolling Counter bảo mật)         |
-|          | Block 3 | Sector Trailer 0: Key A (6B), Access Bits (4B), Key B |
-+----------+---------+-------------------------------------------------------+
-| Sector 1 | Block 0 | Data Block 4 (Block 0 của Sector 1)                   |
-|          | Block 1 | Data Block 5                                          |
-|          | Block 2 | Data Block 6                                          |
-|          | Block 3 | Sector Trailer 1: Key A (6B), Access Bits (4B), Key B |
-+----------+---------+-------------------------------------------------------+
-| ...      | ...     | ...                                                   |
-+----------+---------+-------------------------------------------------------+
-| Sector 15| Block 0 | Data Block 60                                         |
-|          | Block 1 | Data Block 61                                         |
-|          | Block 2 | Data Block 62                                         |
-|          | Block 3 | Sector Trailer 15: Key A (6B), Access Bits (4B), Key B|
-+----------+---------+-------------------------------------------------------+
-```
+### 2.1 Sóng vô tuyến RFID 13.56 MHz & Tiêu chuẩn ISO/IEC 14443 Type A
+Hệ thống sử dụng sóng vô tuyến dải tần cao **High Frequency (HF) 13.56 MHz** tuân theo tiêu chuẩn quốc tế **ISO/IEC 14443 Type A**.
+* Bước sóng trong không gian tự do:
+  $$\lambda = rac{c}{f_c} = rac{3 	imes 10^8 	ext{ m/s}}{13.56 	imes 10^6 	ext{ Hz}} pprox 22.12 	ext{ m}$$
+* Vùng cảm ứng trường gần (Near-Field Reactive Region):
+  $$r < rac{\lambda}{2\pi} pprox rac{22.12}{6.28} pprox 3.52 	ext{ m}$$
+  Khoảng cách đọc thực tế của thẻ thụ động (Passive Tag) với anten PCB của module RC522 đạt hiệu quả cao nhất ở cự ly **$1 \sim 4	ext{ cm}$**.
 
-* **Chi tiết Sector 0 - Block 0 (Nhà sản xuất - Manufacturer Block):**
-  - **Bytes 0 - 3 (hoặc 0 - 6):** Mã định danh duy nhất của thẻ (**UID - Unique Identifier**), ví dụ: `0x8A 0x3B 0x21 0xF0`.
-  - **Byte 4:** Byte kiểm tra BCC (Block Check Character), tính bằng phép XOR liên tiếp:
-    $$	ext{BCC} = 	ext{UID}_0 \oplus 	ext{UID}_1 \oplus 	ext{UID}_2 \oplus 	ext{UID}_3$$
-  - **Byte 5:** Byte SAK (Select Acknowledge) báo cho đầu đọc biết loại vi mạch (SAK = `0x08` tương ứng thẻ MIFARE Classic 1K).
-  - **Bytes 6 - 7:** Byte ATQA (Answer to Request acc. to ISO 14443A).
-  - Ở thẻ NXP chính hãng, Block này được ghi cố định từ nhà máy và đặt ở trạng thái **Read-Only vĩnh viễn**, không có lệnh nào có thể sửa được.
+### 2.2 Phương trình Maxwell-Faraday & Cơ chế nạp năng lượng cảm ứng Neumann
+Cuộn anten trên mạch PCB của RC522 phát ra từ trường biến thiên $B(t)$ ở tần số $13.56	ext{ MHz}$. Khi thẻ RFID đưa vào vùng từ trường, cuộn dây phẳng gồm nhiều vòng bên trong thẻ đón nhận từ thông biến thiên $\Phi(t)$. Theo định luật Maxwell-Faraday và định luật cảm ứng Neumann:
+$$e = -rac{d\Phi}{dt} = -N rac{d}{dt} \iint_S ec{B}(t) \cdot dec{A}$$
+Suất điện động cảm ứng $e$ được nắn dòng bởi mạch chỉnh lưu Diode Schottky tích hợp ngay bên trong chip thẻ và nạp vào tụ điện nội vi $C pprox 28	ext{ pF}$, tạo ra điện áp một chiều $V_{DD} pprox 2.5	ext{V} \sim 3.3	ext{V}$ cấp nguồn cho vi xử lý bên trong thẻ tự khởi động mà **hoàn toàn không cần pin nuôi** (Passive RFID Tag).
 
-* **Chi tiết Block 3 của mỗi Sector (Sector Trailer):**
-  - **Bytes 0 - 5:** Khóa bảo mật `Key A` (6 bytes, ví dụ xuất xưởng: `0xFF 0xFF 0xFF 0xFF 0xFF 0xFF`).
-  - **Bytes 6 - 9:** 4 bytes bit truy cập (`Access Bits`), mã hóa quyền đọc/ghi riêng biệt cho từng Block trong Sector.
-  - **Bytes 10 - 15:** Khóa bảo mật `Key B` (6 bytes, dùng cho xác thực phân quyền 2 chiều).
+### 2.3 Cơ chế biến điệu tải (Load Modulation) trên sóng mang phụ Subcarrier 848 kHz
+Thẻ RFID truyền dữ liệu ngược về đầu đọc bằng cách đóng/ngắt một transistor tải điện trở song song với cuộn anten của thẻ. Sự thay đổi dòng tiêu thụ này làm biến đổi nhẹ biên độ điện áp trên cuộn anten của đầu đọc RC522 (biến điệu biên độ ASK).
+- Sóng mang phụ (Subcarrier) có tần số:
+  $$f_s = rac{f_c}{16} = rac{13.56	ext{ MHz}}{16} = 848	ext{ kHz}$$
+- Chiều từ Đầu đọc $	o$ Thẻ: Sử dụng mã hóa **Modified Miller** với độ sâu điều chế $100\%$ ASK.
+- Chiều từ Thẻ $	o$ Đầu đọc: Sử dụng mã hóa **Manchester** đồng bộ xung nhịp subcarrier $848	ext{ kHz}$.
 
-* **Ma trận phân tích quyền truy cập (Access Bits Condition):**
-  Mỗi Block được kiểm soát bởi 3 bit truy cập: $C_1, C_2, C_3$.
-  - Cấu hình Transport mặc định ($C_1=0, C_2=0, C_3=0$): Cho phép đọc/ghi tự do dữ liệu bằng Key A hoặc Key B.
-  - Cấu hình Read-Only ($C_1=1, C_2=1, C_3=0$): Chỉ cho phép đọc bằng Key A/B, cấm hoàn toàn lệnh ghi.
-  - Cấu hình Value Block ($C_1=1, C_2=1, C_3=1$): Biến Block thành ví tiền điện tử, cho phép thực thi các lệnh nguyên tử phần cứng: `INCREMENT` (nạp tiền), `DECREMENT` (trừ tiền), `RESTORE` và `TRANSFER`.
+### 2.4 Cấu trúc bộ nhớ vi mạch thẻ MIFARE Classic 1K & Bảng phân tích Access Bits
+Thẻ MIFARE Classic 1K có tổng dung lượng bộ nhớ là **1024 bytes (1 KB)** được phân chia:
+* Gồm **16 Sector** (Sector 0 đến Sector 15). Mỗi Sector gồm **4 Block** (Block 0 đến Block 3), mỗi Block chứa đúng **16 bytes** dữ liệu ($16 	imes 4 	imes 16 = 1024	ext{ bytes}$).
+* **Sector 0 - Block 0 (Manufacturer Block):** Chứa mã UID (4 hoặc 7 bytes) và byte kiểm tra BCC ($	ext{UID}_0 \oplus 	ext{UID}_1 \oplus 	ext{UID}_2 \oplus 	ext{UID}_3$). Ở thẻ chuẩn chính hãng NXP, block này là Read-Only cố định từ nhà máy.
+* **Block 3 của mỗi Sector (Sector Trailer):**
+  - Bytes 0 - 5: Khóa bảo mật `Key A` (6 bytes, mặc định `0xFF 0xFF 0xFF 0xFF 0xFF 0xFF`).
+  - Bytes 6 - 9: 4 bytes bit truy cập (`Access Bits`), mã hóa quyền đọc/ghi riêng biệt cho từng Block trong Sector ($C_1, C_2, C_3$).
+  - Bytes 10 - 15: Khóa bảo mật `Key B` (6 bytes).
 
----
+### 2.5 Tải cảm ứng Solenoid Lock 12V: Năng lượng từ trường, Back-EMF và Diode Flyback 1N4007
+Khóa chốt điện Solenoid Lock 12V là một tải thuần cảm có độ tự cảm $L pprox 100	ext{ mH}$ và điện trở nội $R pprox 8\Omega$.
+- Dòng điện kéo qua cuộn dây: $I = rac{U}{R} = rac{12	ext{V}}{8\Omega} = 1.5	ext{ A}$.
+- Năng lượng tích lũy trong từ trường: $E = rac{1}{2} L I^2 = rac{1}{2} 	imes 0.1 	imes (1.5)^2 = 0.1125	ext{ Joules}$.
+- **Hiện tượng Sức điện động cảm ứng ngược (Back-EMF):**
+  Khi tiếp điểm Relay ngắt điện, dòng điện bị giảm đột ngột từ $1.5	ext{ A}$ về $0$ trong thời gian $dt pprox 5\mu	ext{s}$. Theo định luật tự cảm:
+  $$V_{	ext{kick}} = -L rac{di}{dt} = -(0.1	ext{ H}) 	imes rac{-1.5	ext{ A}}{5 	imes 10^{-6}	ext{ s}} = +300	ext{ V}!$$
+  Điện áp ngược $300	ext{V}$ này sẽ đánh thủng tiếp điểm Relay, sinh tia lửa điện gây nhiễu điện từ (EMI) truyền ngược qua mass làm sập nguồn ESP32 (**Brownout Reset**).
+- **Nguyên lý bảo vệ của Diode Flyback 1N4007:**
+  Mắc một Diode 1N4007 **song song ngược cực tính** với cuộn dây khóa (Cathode có vạch trắng nối vào $+12	ext{V}$, Anode nối vào cực âm/Relay). Khi ngắt điện, Diode được phân cực thuận, tạo thành mạch vòng kín cho dòng điện cảm ứng tự tuần hoàn và tiêu tán năng lượng từ trường thành nhiệt an toàn, ghim điện áp ở mức an toàn $V_{clamp} = 12	ext{V} + 0.7	ext{V} = 12.7	ext{V}$.
 
-### 1.4. Lỗ hổng Clone thẻ (Magic Card UID Gen 1/2) & Cơ chế bảo mật đa tầng
+### 2.6 Mạch cách ly quang Optocoupler PC817 chống nhiễu xuyên mass
+Module Relay 5V tích hợp IC Optocoupler PC817, sử dụng tia hồng ngoại để kích mở Transistor công suất. Mạch này ngăn cách hoàn toàn đường mass số (`Digital GND`) của ESP32 với đường mass công suất (`Power GND`) của Relay và khóa từ, triệt tiêu nguy cơ xung nhiễu công nghiệp truyền ngược vào vi điều khiển.
 
-* **Bản chất kỹ thuật của vấn đề sao chép thẻ lậu:**
-  Hiện nay trên thị trường tràn lan các loại phôi thẻ giá rẻ từ Trung Quốc ("Magic Card" UID Gen 1, CUID Gen 2, FUID, UFUID):
-  - **Thẻ UID Gen 1:** Mở cửa sau phần cứng (Backdoor). Bằng cách gửi chuỗi lệnh đặc biệt `0x40` (7-bit) và `0x43`, đầu đọc cầm tay có thể ghi đè bất kỳ dữ liệu nào vào **Sector 0 Block 0**, biến chiếc thẻ trắng thành một bản sao y hệt thẻ cư dân chỉ trong 2 giây.
-  - **Thẻ CUID Gen 2:** Không cần backdoor, cho phép ghi đè Sector 0 Block 0 bằng lệnh ghi dữ liệu chuẩn `0xA0` thông thường.
-* **Tại sao chỉ dùng UID là LỖ HỔNG CHẾT NGƯỜI?**
-  Nếu hệ thống chỉ đọc 4 bytes UID rồi gửi lên server mở cửa, bất kỳ ai có đầu đọc sao chép thẻ cầm tay mua 100k trên mạng đều có thể sao chép thẻ của người khác để đột nhập vào nhà!
+### 2.7 Hiện tượng dội phím cơ khí (Contact Bounce) & Mạch lọc thông thấp RC 1ms
+Nút bấm Exit Button (nối vào **GPIO 32**) có tiếp điểm cơ khí bị nảy lò xo trong khoảng $5 \sim 20	ext{ ms}$ khi nhấn.
+- **Lọc phần cứng (Hardware RC Filter):** Mắc tụ gốm $C = 100	ext{ nF}$ song song với nút nhấn kết hợp điện trở kéo lên $R = 10	ext{ k}\Omega$. Hằng số thời gian mạch nạp:
+  $$	au = R 	imes C = 10^4\Omega 	imes 10^{-7}	ext{F} = 1	ext{ ms}$$
+  Mạch lọc thông thấp này triệt tiêu hoàn toàn các gai xung nhọn tần số cao.
+- **Lọc phần mềm (Non-blocking Debounce):** Dùng bộ đếm `millis()` lọc ngưỡng $50	ext{ ms}$, không dùng `delay()`.
 
-* **Giải pháp phòng thủ đa tầng (Defense-in-Depth) của dự án:**
-  1. **Tầng 1 - Không tin tưởng UID:** Đổi toàn bộ khóa `Key A` và `Key B` mặc định thành khóa bí mật riêng của dự án (ví dụ: `0xD3 0x9B 0x7E 0x41 0x2A 0x8F`).
-  2. **Tầng 2 - Ghi Rolling Counter động vào Data Block:**
-     - Tại **Block 1 của Sector 1**, hệ thống lưu trữ một số nguyên đếm số lần sử dụng (Counter) và một chữ ký số Hash SHA-256.
-     - Mỗi lần quẹt thẻ thành công, ESP32 tăng Counter thêm 1, tính lại chữ ký và ghi ngược vào thẻ, đồng thời cập nhật Counter này lên Database của Server.
-     - **Nguyên lý chống Clone:** Nếu kẻ gian sao chép thẻ tại thời điểm $	ext{Counter} = 10$. Khi thẻ gốc được sử dụng tiếp, trên Server số đếm đã tăng lên $	ext{Counter} = 15$. Khi kẻ gian mang thẻ clone ($	ext{Counter} = 10$) đi quẹt, Server phát hiện $	ext{Counter}_{	ext{clone}} < 	ext{Counter}_{	ext{server}}$, lập tức khóa cửa, phát chuông báo động đỏ và gửi cảnh báo về điện thoại quản trị viên!
-  3. **Tầng 3 - Thuật toán phát hiện quét thẻ bất thường (Brute-Force Anomaly Detection):**
-     Nếu một đầu đọc ghi nhận liên tiếp $> 5$ lần quẹt thẻ không hợp lệ trong vòng $60	ext{ giây}$, hệ thống tự động khóa cổng đọc trong $3	ext{ phút}$ và gửi thông báo khẩn cấp lên Dashboard Desktop.
+### 2.8 Chuẩn truyền thông SPI: Master/Slave, CPOL/CPHA Mode 0 vs I2C vs Wiegand 26/34
+Dự án sử dụng giao tiếp SPI (Serial Peripheral Interface) Mode 0 ($CPOL=0, CPHA=0$) cho module RC522:
+- Tốc độ xung nhịp đạt tới $10	ext{ MHz}$ (so với $400	ext{ kHz}$ của I2C), cho thời gian đọc thẻ tức thì $< 10	ext{ ms}$.
+- Đường truyền tách biệt (`MOSI`, `MISO`, `SCK`, `SS`) giúp đường truyền ổn định và chống nhiễu tốt trên mô hình cửa thực tế.
+
+### 2.9 Phân định kiến trúc lưu trữ: Flash NVS (Whitelist) vs LittleFS (Log Queue)
+Để bảo vệ tuổi thọ của bộ nhớ Flash vi điều khiển:
+- **NVS (Non-Volatile Storage):** Dùng lưu cấu hình hệ thống (Device Code, Wi-Fi, Token) và bảng Whitelist tối đa 50–100 thẻ (dữ liệu ít thay đổi, chỉ ghi khi có thẻ mới).
+- **LittleFS (SPIFFS successor):** Dùng lưu tệp tin hàng đợi nhật ký sự kiện ngoại tuyến (`offline_queue`). LittleFS tích hợp thuật toán Dynamic Wear Leveling, trải đều các chu kỳ ghi tuần tự lên toàn bộ các block của Flash, tránh nguy cơ làm chai mòn hỏng sector Flash.
 
 ---
 
-### 1.5. Mạch công suất & Tải cảm ứng: Hiện tượng Back-EMF và Diode Flyback 1N4007
-Khóa chốt điện Solenoid Lock 12V hoạt động dựa trên một cuộn dây đồng quấn quanh một lõi sắt di động. Dòng điện chạy qua tạo ra lực từ trường hút thanh chốt thụt vào trong để mở cửa.
+# PHẦN 3: SƠ ĐỒ KỸ THUẬT & SƠ ĐỒ ĐẤU NỐI MẠCH (PINOUT AN TOÀN)
 
-* **Bản chất tải cảm kháng:**
-  Cuộn dây khóa là một **tải thuần cảm** có độ tự cảm $L pprox 50 \sim 150	ext{ mH}$ và điện trở nội $R pprox 8\Omega$. Khi đóng nguồn 12V, dòng điện kéo qua cuộn dây đạt:
-  $$I = rac{U}{R} = rac{12	ext{V}}{8\Omega} = 1.5	ext{ A}$$
-  Năng lượng tích lũy trong từ trường của cuộn dây là:
-  $$E = rac{1}{2} L I^2 = rac{1}{2} 	imes 0.1 	imes (1.5)^2 = 0.1125	ext{ Joules}$$
+### 3.1 Bảng ánh xạ chân GPIO chốt an toàn (Loại bỏ hoàn toàn Strapping Pins)
 
-* **Hiện tượng Sức điện động cảm ứng ngược (Back-EMF / Inductive Kick):**
-  Khi tiếp điểm Relay ngắt điện, dòng điện $I$ bị cưỡng bức giảm từ $1.5	ext{ A}$ về $0	ext{ A}$ trong một khoảng thời gian cực ngắn của hồ quang điện ($dt pprox 1 \sim 5\mu	ext{s}$). Theo định luật cảm ứng tự cảm của Faraday và định luật Lenz:
-  $$V_{	ext{kick}} = -L rac{di}{dt}$$
-  Vì $rac{di}{dt} = rac{-1.5	ext{ A}}{5 	imes 10^{-6}	ext{ s}} = -300.000	ext{ A/s}$, điện áp ngược sinh ra trên 2 đầu cuộn dây vọt lên:
-  $$V_{	ext{kick}} = -(0.1	ext{ H}) 	imes (-300.000	ext{ A/s}) = +300	ext{ V}!$$
-  Điện áp xung nhọn $300	ext{V}$ này sinh ra tia lửa điện đánh cháy tiếp điểm cơ khí của Relay, phát ra bức xạ điện từ mạnh (EMI) truyền ngược qua đường mass, làm sụt áp nguồn 3.3V của ESP32 khiến vi điều khiển bị khởi động lại liên tục (**Brownout Reset**), hoặc đánh thủng transistor điều khiển!
+> ⚠️ **NGUYÊN TẮC KỸ THUẬT QUAN TRỌNG:** Trên chip ESP32, các chân `GPIO 0, 2, 4, 12, 15` là các chân **Strapping Pins** (chân cấu hình bootloader lúc khởi động). Để đảm bảo ESP32 **không bao giờ bị lỗi treo bootloop hay relay bị giật kích lúc cắm nguồn**, toàn bộ các linh kiện ngoại vi đã được bố trí vào các chân I/O tiêu chuẩn an toàn tuyệt đối:
 
-* **Nguyên lý bảo vệ của Diode Flyback (Freewheeling Diode 1N4007):**
-  - Mắc một Diode chỉnh lưu 1N4007 **song song ngược cực tính** với nguồn nuôi cuộn dây khóa (Cathode nối vào cực $+12	ext{V}$, Anode nối vào cực âm/Relay).
-  - Khi có điện 12V: Diode bị phân cực ngược, không có dòng rò chạy qua Diode.
-  - Khi Relay ngắt điện: Điện áp cảm ứng ngược sinh ra có cực tính ngược lại (+ ở dưới, - ở trên). Lúc này Diode Flyback lập tức được **phân cực thuận**, tạo thành một mạch vòng kín (Closed Circuit) cho dòng điện cảm ứng tiếp tục tự tuần hoàn qua Diode.
-  - Toàn bộ năng lượng từ trường $rac{1}{2}LI^2$ được tiêu tán an toàn dưới dạng nhiệt trên điện trở nội của cuộn dây, triệt tiêu hoàn toàn xung áp nhọn, giữ cho điện áp luôn bị ghim ở mức an toàn $V_{clamp} = 12	ext{V} + 0.7	ext{V} = 12.7	ext{V}$.
-
----
-
-### 1.6. Mạch cách ly quang Optocoupler PC817 chống nhiễu xuyên mass
-Module Relay 5V được trang bị IC cách ly quang **Optocoupler PC817**:
-* Bên trong PC817 gồm một Diode phát quang hồng ngoại (IR LED) ở phía đầu vào và một Transistor quang (Phototransistor) ở phía đầu ra, ngăn cách nhau bởi một lớp điện môi trong suốt có khả năng cách điện lên tới $5000	ext{ Vrms}$.
-* Tín hiệu kích từ chân GPIO 4 của ESP32 ($3.3	ext{V}$) chỉ nuôi sáng LED hồng ngoại. Ánh sáng này kích mở Transistor để kéo dòng mở cuộn hút Relay ở mạch công suất 5V/12V.
-* **Tác dụng kỹ thuật:** Tách biệt hoàn toàn đường mass tín hiệu số (`Digital GND`) của ESP32 với đường mass công suất (`Power GND`) của Relay và khóa từ, ngăn chặn tuyệt đối các xung nhiễu công nghiệp truyền ngược vào vi điều khiển.
-
----
-
-### 1.7. Hiện tượng dội phím cơ khí (Switch Contact Bounce) & Giải thuật Debounce
-Nút bấm Exit Button (mở cửa từ bên trong) sử dụng tiếp điểm kim loại đàn hồi.
-
-* **Bản chất dội phím:**
-  Khi người dùng nhấn hoặc nhả nút bấm, hai thanh kim loại không tiếp xúc êm ái mà va chạm nảy qua nảy lại nhiều lần trong khoảng thời gian $5	ext{ ms} \sim 20	ext{ ms}$ trước khi giữ chặt. Điều này làm cho chân GPIO 15 của ESP32 ghi nhận hàng chục xung sườn lên và sườn xuống liên tiếp, dẫn đến hiện tượng cửa mở rồi đóng ngắt loạn xạ hoặc kích hoạt sai còi báo động.
-* **Giải pháp lọc dội 2 tầng:**
-  1. **Lọc dội phần cứng (Hardware RC Filter):** Mắc một tụ điện gốm $C = 100	ext{ nF}$ song song với nút nhấn kết hợp với điện trở kéo lên $R = 10	ext{ k}\Omega$. Hằng số thời gian mạch nạp:
-     $$	au = R 	imes C = 10^4\Omega 	imes 10^{-7}	ext{F} = 10^{-3}	ext{ s} = 1	ext{ ms}$$
-     Mạch lọc thông thấp này sẽ triệt tiêu hoàn toàn các gai xung nhọn tần số cao do tiếp điểm cơ khí nảy sinh ra.
-  2. **Lọc dội phần mềm không chặn (Non-blocking Software Debounce):**
-     Tuyệt đối không dùng hàm `delay(50)`. Sử dụng kỹ thuật lưu vết thời gian với `millis()`:
-     ```cpp
-     int reading = digitalRead(PIN_EXIT_BTN);
-     if (reading != lastButtonState) {
-         lastDebounceTime = millis();
-     }
-     if ((millis() - lastDebounceTime) > DEBOUNCE_DELAY_MS) { // 50ms
-         if (reading != buttonState) {
-             buttonState = reading;
-             if (buttonState == LOW) {
-                 triggerDoorUnlock(REASON_EXIT_BUTTON);
-             }
-         }
-     }
-     lastButtonState = reading;
-     ```
-
----
-
-### 1.8. Giao thức truyền thông vi điều khiển: Chuẩn SPI vs I2C vs Wiegand 26/34
-
-| Tiêu chí kỹ thuật | Chuẩn SPI (Được chọn cho RC522) | Chuẩn I2C | Chuẩn Wiegand 26/34 (Công nghiệp) |
-| :--- | :--- | :--- | :--- |
-| **Số lượng dây dẫn** | **4 dây** (`SCK`, `MOSI`, `MISO`, `SS`) | 2 dây (`SDA`, `SCL`) | 2 dây (`DATA0`, `DATA1`) |
-| **Tốc độ truyền xung nhịp** | **Cực cao (Lên tới $10	ext{ MHz}$)** | Trung bình ($100	ext{ kHz} \sim 400	ext{ kHz}$) | Cực chậm ($10	ext{ kHz}$) |
-| **Độ trễ đọc thẻ** | **$< 10	ext{ ms}$ (Tức thì)** | $40 \sim 80	ext{ ms}$ | $50 \sim 100	ext{ ms}$ |
-| **Kiểu truyền thông** | Song công toàn phần (Full-Duplex) | Bán song công (Half-Duplex) | Đơn công 1 chiều (Simplex) |
-| **Khả năng chống nhiễu** | Rất tốt trong khoảng cách ngắn ($< 20	ext{ cm}$) | Nhạy cảm với điện dung ký sinh | Cực tốt trong khoảng cách xa ($> 100	ext{ m}$) |
-| **Đánh giá ứng dụng** | **Tối ưu nhất cho mô hình tích hợp gần** | Dễ nghẽn khi đọc thẻ nhanh | Chuẩn cho đầu đọc gắn ngoài trời kéo dây xa |
-
----
-
-### 1.9. Kiến trúc mạng phân tán & Khả năng chịu lỗi ngoại tuyến (Offline Caching NVS)
-Hệ thống được thiết kế với tiêu chuẩn không phụ thuộc đơn điểm (No Single Point of Failure):
-
-```text
-                     +---------------------------------------+
-                     |         KIẾN TRÚC XỬ LÝ 2 CHẾ ĐỘ      |
-                     +---------------------------------------+
-                                         │
-                                [QUẸT THẺ RFID]
-                                         │
-                             [Kiểm tra kết nối mạng?]
-                                  /                                    (Online)  /               \  (Offline / Timeout)
-                                ▼                 ▼
-                    +--------------------+   +--------------------+
-                    |  GỬI HTTP REST API |   | TRA CỨU FLASH NVS  |
-                    | POST /api/access   |   | Bảng Hash 100 thẻ  |
-                    +--------------------+   +--------------------+
-                                │                         │
-                       [Server phản hồi]             [Có trong Cache?]
-                                │                         │
-                        +---------------+         +---------------+
-                        | GRANTED/DENIED|         |  MỞ CỬA OFFLINE|
-                        | Lưu log DB    |         | Lưu Queue RAM |
-                        +---------------+         +---------------+
-```
-
-* **Bộ nhớ NVS (Non-Volatile Storage):** ESP32 sử dụng một phân vùng bộ nhớ Flash chuyên dụng để lưu trữ các cặp Key-Value. Khi hệ thống Online, mỗi khi có cư dân mới hoặc cập nhật thẻ, Server sẽ tự động đồng bộ danh sách thẻ hợp lệ về lưu trong NVS.
-* **Cơ chế Fallback thông minh:** Khi ESP32 gửi HTTP request xác thực mà không nhận được phản hồi sau $1.5	ext{ giây}$ (timeout), vi điều khiển không từ chối người dùng mà tự động kích hoạt **Offline Engine**: Tra cứu mã băm của thẻ trong NVS. Nếu hợp lệ, Relay vẫn kích mở khóa bình thường và ghi lại sự kiện vào hàng đợi ngoại tuyến `offline_queue`.
-* **Tự động đồng bộ ngược:** Ngay khi Wi-Fi có trở lại, một Task chạy ngầm sẽ tự động đọc `offline_queue` và gửi bù toàn bộ lịch sử quẹt thẻ ngoại tuyến lên Server để ghi vào Database.
-
----
-
-# PHẦN 2: SƠ ĐỒ KỸ THUẬT & SƠ ĐỒ ĐẤU NỐI MẠCH (PINOUT)
-
-### 2.1. Bảng ánh xạ chân GPIO chi tiết (Hardware Pinout Matrix)
-
-| Thiết bị ngoại vi | Chân Module | Chân kết nối ESP32 | Mức điện áp | Ghi chú an toàn phần cứng |
+| Thiết bị ngoại vi | Chân Module | Chân kết nối ESP32 (Chốt) | Điện áp | Chức năng kỹ thuật |
 | :--- | :--- | :--- | :--- | :--- |
-| **RFID-RC522** | **3.3V** | **3V3 (ESP32)** | 3.3V DC | ⚠️ **CẤM CẮM 5V** (Cháy module MFRC522 lập tức!) |
+| **RFID-RC522** | **3.3V** | **3V3 (ESP32)** | 3.3V DC | ⚠️ **CẤM CẮM 5V** (Cháy IC MFRC522 lập tức!) |
 | | **GND** | **GND** | 0V | Nối mass chung toàn mạch |
 | | **RST** | **GPIO 22** | 3.3V Logic | Chân Reset phần cứng của RC522 |
 | | **MISO** | **GPIO 19** | 3.3V Logic | SPI Master In Slave Out |
 | | **MOSI** | **GPIO 23** | 3.3V Logic | SPI Master Out Slave In |
 | | **SCK** | **GPIO 18** | 3.3V Logic | SPI Serial Clock ($10	ext{ MHz}$) |
-| | **SDA (SS)** | **GPIO 5** | 3.3V Logic | SPI Chip Select (Active LOW) |
+| | **SDA (SS)** | **GPIO 21** | 3.3V Logic | SPI Chip Select (Active LOW, an toàn) |
 | **Relay 5V Module** | **VCC** | **VIN (hoặc 5V)** | 5V DC | Cấp nguồn nuôi cuộn hút relay |
 | | **GND** | **GND** | 0V | Nối mass chung |
-| | **IN** | **GPIO 4** | 3.3V Logic | Kích mở Relay qua Optocoupler PC817 |
-| **Còi Active Buzzer**| **VCC (+)** | **GPIO 2** | 3.3V Logic | Còi chíp 3.3V phát âm thanh phản hồi |
+| | **IN** | **GPIO 26** | 3.3V Logic | Kích mở Relay (Tránh strapping pin GPIO 4) |
+| **Còi Active Buzzer**| **VCC (+)** | **GPIO 25** | 3.3V Logic | Còi phát âm thanh (Tránh strapping pin GPIO 2) |
 | | **GND (-)** | **GND** | 0V | Mass chung |
-| **LED Xanh (Thành công)**|**Anode (+)**| **GPIO 16** | 3.3V qua $220\Omega$ | Đèn báo xác thực thẻ hợp lệ |
-| **LED Đỏ (Từ chối)** | **Anode (+)** | **GPIO 17** | 3.3V qua $220\Omega$ | Đèn báo từ chối thẻ / Cảnh báo an ninh |
-| **Nút Nhấn Exit Button**|**Chân 1** | **GPIO 15** | PULLUP nội | Nút bấm cơ mở cửa từ bên trong |
+| **LED Xanh (Thành công)**|**Anode (+)**| **GPIO 27** | 3.3V qua $220\Omega$ | Đèn báo xác thực thẻ hợp lệ |
+| **LED Đỏ (Từ chối)** | **Anode (+)** | **GPIO 33** | 3.3V qua $220\Omega$ | Đèn báo từ chối thẻ / Cảnh báo an ninh |
+| **Nút Nhấn Exit Button**|**Chân 1** | **GPIO 32** | PULLUP nội | Nút mở cửa từ bên trong (Tránh GPIO 15) |
 | | **Chân 2** | **GND** | 0V | Nối mass khi nhấn nút |
 | **Khóa Chốt Solenoid**| **Dây (+)** | **Nguồn +12V DC**| 12V DC (1.5A)| Nguồn Adapter 12V 2A rời |
 | | **Dây (-)** | **Relay NO** | Tiếp điểm | Chân COM của Relay nối về Mass 12V |
@@ -269,11 +154,11 @@ Hệ thống được thiết kế với tiêu chuẩn không phụ thuộc đơ
 
 ---
 
-### 2.2. Sơ đồ nguyên lý mạch điện phần cứng (Hardware Schematics)
+### 3.2 Sơ đồ nguyên lý mạch điện phần cứng chi tiết (Hardware Schematics)
 
 ```text
        +-------------------------------------------------------------+
-       |               SƠ ĐỒ ĐẤU NỐI MẠCH PHẦN CỨNG CHI TIẾT          |
+       |           SƠ ĐỒ NGUYÊN LÝ MẠCH PHẦN CỨNG CHUẨN AN TOÀN       |
        +-------------------------------------------------------------+
 
       [NGUỒN 12V DC 2A]
@@ -289,20 +174,20 @@ Hệ thống được thiết kế với tiêu chuẩn không phụ thuộc đơ
          │   │   |                         |             │
          │   │   | 3V3 ─────────────────(3.3V) RFID RC522│
          │   │   | GND ─────────────────(GND)            │
-         │   │   | GPIO 5 (SS)──────────(SDA)            │
+         │   │   | GPIO 21 (SS)─────────(SDA)            │
          │   │   | GPIO 18 (SCK)────────(SCK)            │
          │   │   | GPIO 23 (MOSI)───────(MOSI)           │
          │   │   | GPIO 19 (MISO)───────(MISO)           │
          │   │   | GPIO 22 (RST)────────(RST)            │
          │   │   |                         |             │
-         │   │   | GPIO 4 ──────────────(IN) RELAY 5V    │
+         │   │   | GPIO 26 ─────────────(IN) RELAY 5V    │
          │   └───| 5V/VIN ──────────────(VCC) MODULE     │
          │       | GND ─────────────────(GND)            │
          │       |                         |             │
-         │       | GPIO 2 ──────────────(+) ACTIVE BUZZER│
-         │       | GPIO 16 ──[220Ω]─────(+) LED XANH     │
-         │       | GPIO 17 ──[220Ω]─────(+) LED ĐỎ       │
-         │       | GPIO 15 ─────────────[NÚT NHẤN EXIT]──┤
+         │       | GPIO 25 ─────────────(+) ACTIVE BUZZER│
+         │       | GPIO 27 ──[220Ω]─────(+) LED XANH     │
+         │       | GPIO 33 ──[220Ω]─────(+) LED ĐỎ       │
+         │       | GPIO 32 ─────────────[NÚT NHẤN EXIT]──┤
          │       +-------------------------+             │
          │                                               │
          ├───(+)12V────────┐                             │
@@ -318,7 +203,7 @@ Hệ thống được thiết kế với tiêu chuẩn không phụ thuộc đơ
 
 ---
 
-### 2.3. Sơ đồ phân phối nguồn điện 2 tầng (Power Distribution & Buck Converter)
+### 3.3 Sơ đồ phân phối nguồn điện 2 tầng (Power Distribution)
 
 ```mermaid
 graph TD
@@ -334,61 +219,66 @@ graph TD
 
     ESP32_VIN -->|"Ổn áp tuyến tính LDO nội vi"| V33["Chân 3V3 của ESP32"]
     V33 -->|"Nguồn logic 3.3V (Tuyệt đối cấm cắm 5V)"| RC522["📡 Đầu đọc RFID RC522"]
-    V33 -->|"Tín hiệu điều khiển"| Peripherals["🔊 Buzzer / 💡 LED / 🔘 Exit Button"]
+    V33 -->|"Tín hiệu điều khiển an toàn"| Peripherals["🔊 Buzzer (25) / 💡 LED (27/33) / 🔘 Exit (32)"]
 ```
 
 ---
 
-### 2.4. Sơ đồ kiến trúc kỹ thuật toàn hệ thống (System Architecture Diagram)
+### 3.4 Sơ đồ kiến trúc kỹ thuật toàn hệ thống (System Architecture Diagram)
 
 ```mermaid
 graph TB
-    subgraph Edge_Hardware ["TẦNG THIẾT BỊ ĐẦU CUỐI (ESP32 EDGE CONTROLLER)"]
+    subgraph Edge_Hardware ["TẦNG THIẾT BỊ ĐẦU CUỐI (ESP32 ACCESS CONTROLLER)"]
         Card["💳 Thẻ RFID 13.56 MHz (ISO 14443A)"] -->|"Cảm ứng điện từ"| RC522["Đầu đọc RC522 (SPI 10 MHz)"]
         RC522 --> ESP32["Vi điều khiển ESP32"]
-        ExitBtn["🔘 Nút Exit (Khử dội phần cứng RC)"] -->|"Ngắt GPIO 15"| ESP32
-        ESP32 -->|"Opto-Isolated GPIO 4"| Relay["Module Relay 5V"]
+        ExitBtn["🔘 Nút Exit (Khử dội RC 1ms)"] -->|"Chân GPIO 32"| ESP32
+        ESP32 -->|"Opto-Isolated GPIO 26"| Relay["Module Relay 5V"]
         Relay -->|"Tiếp điểm đóng ngắt 12V"| Solenoid["⚡ Khóa Solenoid Lock 12V"]
         Solenoid -.->|"Bảo vệ cuộn cảm"| Diode["🛡️ Diode 1N4007"]
-        ESP32 --- NVS["Flash NVS (Offline Whitelist Cache 100 thẻ)"]
+        ESP32 --- NVS["Flash NVS: Cấu hình + Whitelist Cache"]
+        ESP32 --- LittleFS["LittleFS: Hàng đợi Offline Event Queue"]
     end
 
-    subgraph Network_Backend ["TẦNG MẠNG & MÁY CHỦ (FASTIFY REST & WEBSOCKET)"]
+    subgraph Network_Backend ["TẦNG MẠNG & MÁY CHỦ (FASTIFY REST BACKEND)"]
         ESP32 <-->|"Wi-Fi REST JSON (Port 3000)"| Fastify["Fastify REST API Backend"]
-        ESP32 <-->|"WebSocket Event Stream (Port 3001)"| Fastify
         Fastify <--> DB[("Cơ sở dữ liệu SQLite / PostgreSQL")]
-        Fastify --- Anomaly["Bộ phân tích bất thường (Sliding-Window Brute-Force Detector)"]
+        Fastify --- Anomaly["Phát hiện bất thường (Rule-based Sliding Window)"]
     end
 
     subgraph Desktop_Client ["TẦNG ỨNG DỤNG QUẢN TRỊ (ELECTRON + REACT)"]
-        Fastify <-->|"Realtime IPC Push"| Electron["Electron + React Desktop App"]
-        Electron --- Logs["Bảng nhật ký quẹt thẻ thời gian thực (Live Feed)"]
-        Electron --- CardManager["Phân hệ Quản lý cư dân & Cấp phát thẻ mới"]
-        Electron --- RemoteUnlock["Nút kích mở cửa khẩn cấp từ xa"]
+        Fastify <-->|"HTTP REST Polling (3-5s)"| Electron["Electron + React Desktop App"]
+        Electron --- Logs["Bảng nhật ký quẹt thẻ (Live Access Feed)"]
+        Electron --- CardManager["Quản lý cư dân & Cấp/Khóa thẻ"]
+        Electron --- AlertScreen["Màn hình Cảnh báo an ninh đỏ"]
     end
 ```
 
 ---
 
-# PHẦN 3: SƠ ĐỒ LÀM & SƠ ĐỒ QUY TRÌNH THỰC HIỆN DỰ ÁN
+# PHẦN 4: SƠ ĐỒ LÀM & SƠ ĐỒ QUY TRÌNH THỰC HIỆN DỰ ÁN
 
-### 3.1. Quy trình 6 bước triển khai thực chiến từ A-Z
+### 4.1 Quy trình 11 tuần triển khai thực chiến từ A-Z
 
 ```mermaid
 flowchart TD
-    Step1["BƯỚC 1: Đo kiểm linh kiện & Kiểm tra nguồn điện<br/>- Dùng đồng hồ VOM đo điện áp nguồn 12V, 5V, 3.3V<br/>- Kiểm tra thông mạch cáp Dupont"]
-    Step2["BƯỚC 2: Lắp ráp Breadboard & Hàn Diode Flyback<br/>- Hàn diode 1N4007 song song 2 cực cuộn dây khóa 12V<br/>- Kết nối chuẩn 7 chân SPI giữa RC522 và ESP32"]
-    Step3["BƯỚC 3: Lập trình Firmware nền tảng (C++ PlatformIO)<br/>- Viết driver SPI đọc UID và đọc/ghi Sector Data Block<br/>- Xây dựng module kết nối Wi-Fi tự động Reconnect"]
-    Step4["BƯỚC 4: Phát triển Backend API & Database (Fastify)<br/>- Thiết kế schema Database: Users, Cards, AccessLogs, Devices<br/>- Xây dựng API xác thực quẹt thẻ POST /api/access/verify"]
-    Step5["BƯỚC 5: Xây dựng Desktop App Quản trị (Electron + React)<br/>- Hiển thị nhật ký quẹt thẻ thời gian thực qua WebSocket<br/>- Phân hệ cấp phát thẻ, khóa thẻ mất, mở cửa từ xa"]
-    Step6["BƯỚC 6: Kiểm thử bảo mật, Offline Cache & Đóng gói<br/>- Rút dây mạng Wi-Fi kiểm tra mở cửa bằng Offline Flash Cache<br/>- Quẹt thẻ lạ liên tục thử nghiệm còi báo động Brute-force<br/>- Đóng gói ứng dụng thành file .exe cài đặt"]
+    W1["Tuần 1: Cài đặt công cụ, Git & Test I/O (Buzzer 25, Relay 26, LED 27/33)"]
+    W2["Tuần 2: Nối dây SPI RC522 (SS 21), đọc và chuẩn hóa chuỗi UID"]
+    W3["Tuần 3: Kiểm soát cửa cục bộ (Local Whitelist, Nút Exit 32, Khóa 12V)"]
+    W4["Tuần 4: Driver Wi-Fi Auto-Reconnect & Thiết kế kiến trúc Firmware FSM"]
+    W5["Tuần 5: Xây dựng Backend Fastify + Prisma ORM + Cơ sở dữ liệu SQLite"]
+    W6["Tuần 6: Xây dựng Business Access API, Device Token & Card Lifecycle"]
+    W7["Tuần 7: Tích hợp ESP32 gọi API xác thực thời gian thực qua HTTP REST"]
+    W8["Tuần 8: Xây dựng Desktop App Electron + React MVP (Đăng nhập, xem log)"]
+    W9["Tuần 9: Phân quyền RBAC, CRUD Thẻ & Thuật toán cảnh báo Anomaly"]
+    W10["Tuần 10: Xây dựng Offline Whitelist Cache (NVS) & Log Sync (LittleFS)"]
+    W11["Tuần 11: Đo đạc 30 lần latency, Hoàn thiện tài liệu, Video & Build .exe"]
 
-    Step1 --> Step2 --> Step3 --> Step4 --> Step5 --> Step6
+    W1 --> W2 --> W3 --> W4 --> W5 --> W6 --> W7 --> W8 --> W9 --> W10 --> W11
 ```
 
 ---
 
-### 3.2. Sơ đồ thuật toán xử lý quẹt thẻ (Card Verification Flowchart)
+### 4.2 Sơ đồ thuật toán xử lý quẹt thẻ (Card Verification Flowchart)
 
 ```mermaid
 flowchart TD
@@ -396,81 +286,97 @@ flowchart TD
     DetectCard -- Không --> Wait["Chờ 50ms kiểm tra lại"] --> Start
     DetectCard -- Có --> ReadUID{"Đọc thành công UID?<br/>(PICC_ReadCardSerial)"}
     ReadUID -- Thất bại --> Start
-    ReadUID -- Thành công --> BeepShort["Buzzer kêu Beep ngắn phản hồi"]
+    ReadUID -- Thành công --> BeepShort["Buzzer (25) kêu Beep ngắn phản hồi"]
 
-    BeepShort --> CheckWifi{"Kết nối Wi-Fi<br/>Online?"}
+    BeepShort --> CheckWifi{"Kết nối Wi-Fi & API<br/>Online?"}
 
-    CheckWifi -- Online --> SendAPI["Gửi Request HTTP POST /api/access/verify<br/>Body: { deviceCode, uid, counter, timestamp }"]
-    SendAPI --> RecvResponse{"Server phản hồi<br/>status = GRANTED?"}
+    CheckWifi -- Online --> SendAPI["Gửi HTTP POST /api/device/access/verify<br/>Header: X-Device-Token<br/>Body: { deviceCode, uid, timestamp }"]
+    SendAPI --> RecvResponse{"Server phản hồi<br/>allowed == true?"}
 
-    RecvResponse -- GRANTED --> OpenDoor["KÍCH HOẠT MỞ CỬA:<br/>1. Kích Relay mở khóa Solenoid<br/>2. Bật LED Xanh<br/>3. Buzzer phát 2 tiếng Beep ngắn<br/>4. Tăng Rolling Counter trên thẻ"]
-    OpenDoor --> TimerUnlock["Giữ mở cửa trong 5 giây (Unlock Duration)"]
-    TimerUnlock --> CloseDoor["ĐÓNG KHÓA CỬA:<br/>1. Ngắt Relay (Khóa chốt lại)<br/>2. Tắt LED Xanh<br/>3. Sẵn sàng lần quẹt mới"] --> Start
+    RecvResponse -- true (GRANTED) --> OpenDoor["KÍCH HOẠT MỞ CỬA:<br/>1. Kích Relay (GPIO 26) mở khóa Solenoid<br/>2. Bật LED Xanh (GPIO 27)<br/>3. Buzzer (GPIO 25) phát 2 tiếng Beep ngắn<br/>4. Server ghi AccessLog"]
+    OpenDoor --> TimerUnlock["Giữ mở cửa trong 3-5 giây (Unlock Duration)"]
+    TimerUnlock --> CloseDoor["ĐÓNG KHÓA CỬA:<br/>1. Ngắt Relay 26 (Khóa chốt lại an toàn)<br/>2. Tắt LED Xanh 27<br/>3. Sẵn sàng lần quẹt mới"] --> Start
 
-    RecvResponse -- DENIED / INVALID --> RejectAccess["TỪ CHỐI TRUY CẬP:<br/>1. Nhấp nháy LED Đỏ 3 lần<br/>2. Buzzer kêu Beep dài cảnh báo<br/>3. Khóa giữ nguyên trạng thái đóng"]
-    RejectAccess --> CheckBrute{"Số lần từ chối<br/>> 5 lần / 60 giây?"}
-    CheckBrute -- Đúng --> AlarmMode["KÍCH HOẠT BÁO ĐỘNG ĐỎ:<br/>Hú còi liên tục 30s & Gửi Alert lên Desktop App!"] --> Start
-    CheckBrute -- Sai --> Start
+    RecvResponse -- false (DENIED) --> RejectAccess["TỪ CHỐI TRUY CẬP:<br/>1. Bật LED Đỏ (GPIO 33)<br/>2. Buzzer 25 kêu Beep dài cảnh báo<br/>3. Server ghi log từ chối / Anomaly Alert"] --> Start
 
-    CheckWifi -- Mất mạng (Offline) --> CheckNVS{"UID có trong<br/>Local NVS Cache?"}
-    CheckNVS -- Hợp lệ --> OpenDoorOffline["MỞ CỬA CHẾ ĐỘ OFFLINE:<br/>1. Kích Relay mở khóa 5s<br/>2. Lưu sự kiện vào Flash Offline Log"] --> TimerUnlock
-    CheckNVS -- Không có --> RejectAccess
+    CheckWifi -- Offline / Timeout --> CheckCache{"UID có trong<br/>NVS Whitelist Cache?"}
+    CheckCache -- Có (Hợp lệ) --> OpenDoorOffline["MỞ CỬA OFFLINE:<br/>1. Kích Relay 26 mở khóa 3s<br/>2. Ghi sự kiện vào LittleFS Offline Queue"] --> TimerUnlock
+    CheckCache -- Không có --> RejectAccess
 ```
 
 ---
 
-### 3.3. Sơ đồ máy trạng thái khóa cửa (Door State Machine)
+### 4.3 Sơ đồ máy trạng thái khóa cửa (Door State Machine)
 
 ```mermaid
 stateDiagram-v2
-    [*] --> STATE_LOCKED: Khởi động hệ thống (Chốt khóa đóng an toàn)
+    [*] --> STATE_LOCKED: Khởi động vi điều khiển (Relay ngắt, cửa đóng)
 
-    STATE_LOCKED --> STATE_UNLOCKED: Quẹt thẻ hợp lệ / Bấm nút Exit Button
-    STATE_LOCKED --> STATE_TAMPER_ALARM: Quẹt sai liên tục > 5 lần / Phát hiện cạy cửa
+    STATE_LOCKED --> STATE_VERIFYING: Phát hiện quẹt thẻ mới
+    STATE_LOCKED --> STATE_UNLOCKED: Bấm nút Exit Button (GPIO 32)
 
-    STATE_UNLOCKED --> STATE_LOCKED: Hết thời gian chờ (Sau 5 giây tự động khóa lại)
-    STATE_UNLOCKED --> STATE_HELD_OPEN_ALARM: Cửa bị chặn mở quá 30 giây (Door Held Open)
+    STATE_VERIFYING --> STATE_UNLOCKED: Server phản hồi ACCESS_GRANTED
+    STATE_VERIFYING --> STATE_DENIED: Server phản hồi DENIED (Thẻ khóa/sai quyền)
+    STATE_VERIFYING --> STATE_OFFLINE_CHECK: API Timeout (> 1.5s) hoặc mất Wi-Fi
 
-    STATE_HELD_OPEN_ALARM --> STATE_LOCKED: Cửa được đóng lại hoàn toàn
-    STATE_TAMPER_ALARM --> STATE_LOCKED: Quản trị viên nhập mật khẩu Reset từ Desktop App
+    STATE_OFFLINE_CHECK --> STATE_UNLOCKED: Thẻ có trong NVS Whitelist Cache
+    STATE_OFFLINE_CHECK --> STATE_DENIED: Thẻ không có trong Cache ngoại tuyến
+
+    STATE_UNLOCKED --> STATE_LOCKED: Hết thời gian giữ mở cửa (Sau 3-5 giây)
+    STATE_DENIED --> STATE_LOCKED: Hoàn thành phát tín hiệu còi/đèn từ chối
 ```
 
 ---
 
-### 3.4. Sơ đồ tuần tự giao tiếp hệ thống (Sequence Diagram)
+### 4.4 Sơ đồ tuần tự giao tiếp hệ thống (Sequence Diagram)
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Resident as Cư dân
-    participant RC522 as Đầu đọc RC522
-    participant ESP32 as Vi điều khiển ESP32
-    participant Relay as Khóa Solenoid (Relay)
-    participant Server as Fastify Backend
-    participant DB as SQLite Database
+    participant RC522 as Đầu đọc RC522 (GPIO 21)
+    participant ESP32 as ESP32 Controller
+    participant Relay as Relay Solenoid (GPIO 26)
+    participant Server as Fastify Backend API
+    participant DB as Cơ sở dữ liệu SQLite
     participant Desktop as Electron Desktop App
 
     Resident->>RC522: Đưa thẻ RFID vào vùng đọc (1-4cm)
-    RC522->>ESP32: Bắn ngắt SPI truyền mã UID + Data Block
-    ESP32->>ESP32: Bật Buzzer Beep ngắn phản hồi
+    RC522->>ESP32: Truyền mã UID qua bus SPI (10 MHz)
+    ESP32->>ESP32: Bật Buzzer (GPIO 25) Beep ngắn phản hồi
 
-    alt Kết nối mạng Online
-        ESP32->>Server: POST /api/access/verify { uid: "8A3B21F0", deviceId: "DOOR_01" }
-        Server->>DB: Query bảng Cards & Residents (Check status & permissions)
-        DB-->>Server: Trả về kết quả { valid: true, residentName: "Nguyen Van A" }
-        Server->>DB: INSERT INTO AccessLogs (uid, status, timestamp)
-        Server-->>ESP32: HTTP 200 { status: "GRANTED", duration: 5000 }
-        Server-->>Desktop: WebSocket Push Event: { newLog: "Cửa 1 mở bởi Nguyen Van A" }
-        ESP32->>Relay: Kích chân GPIO 4 mở Relay (Chốt khóa mở)
-        ESP32->>ESP32: Bật LED Xanh & 2 tiếng Beep
-        Note over ESP32,Relay: Giữ mở trong 5000ms
-        ESP32->>Relay: Ngắt chân GPIO 4 (Chốt khóa đóng lại an toàn)
-    else Mất kết nối mạng (Offline Fallback)
-        ESP32->>ESP32: Tra cứu danh sách thẻ trong bộ nhớ Flash NVS
-        alt Thẻ có trong NVS
-            ESP32->>Relay: Kích chân GPIO mở Relay
-            ESP32->>ESP32: Lưu bản ghi sự kiện vào Flash Offline Queue
-        else Thẻ lạ không có trong NVS
-            ESP32->>ESP32: Nhấp nháy LED Đỏ & Còi Beep dài từ chối
+    alt Hệ thống Online
+        ESP32->>Server: POST /api/device/access/verify (Token + UID)
+        Server->>DB: Tra cứu bảng Cards, Residents & Doors
+        DB-->>Server: Trả về trạng thái thẻ & quyền hạn
+        Server->>DB: INSERT INTO access_logs (Kết quả GRANTED/DENIED)
+        Server-->>ESP32: HTTP 200 { allowed: true, unlockDurationMs: 3000 }
+        ESP32->>Relay: Kích GPIO 26 mở Relay (Khóa 12V mở chốt)
+        ESP32->>ESP32: Bật LED Xanh (GPIO 27) & 2 tiếng Beep
+        Note over ESP32,Relay: Duy trì mở trong 3000ms
+        ESP32->>Relay: Ngắt GPIO 26 (Khóa chốt lại an toàn)
+        Desktop->>Server: Polling GET /api/logs (Cập nhật lịch sử mới)
+    else Hệ thống Offline (Mất mạng / Server Timeout)
+        ESP32->>ESP32: Tra cứu mã UID trong NVS Whitelist Cache
+        alt Thẻ có trong NVS Cache
+            ESP32->>Relay: Kích GPIO 26 mở khóa 3000ms
+            ESP32->>ESP32: Ghi sự kiện vào LittleFS Offline Event Queue
+        else Thẻ lạ không có trong Cache
+            ESP32->>ESP32: Bật LED Đỏ (GPIO 33) & Còi Beep dài từ chối
         end
     end
+```
+
+---
+
+# PHẦN 5: TÀI LIỆU THAM KHẢO HỌC THUẬT
+
+1. **NXP Semiconductors.** *MFRC522 Standard Performance MIFARE and NTAG Frontend*, Product Data Sheet, Rev. 3.9, 2016.
+2. **M. Balboa.** *MFRC522 Arduino RFID Library*, Official GitHub Repository.
+3. **F. D. Garcia, P. van Rossum, R. Verdult, R. W. Schreur.** *Dismantling MIFARE Classic*, 13th European Symposium on Research in Computer Security (ESORICS), 2008.
+4. **NIST (National Institute of Standards and Technology).** *Guidelines for Securing Radio Frequency Identification (RFID) Systems*, Special Publication 800-98, 2007.
+5. **Espressif Systems.** *ESP32 Technical Reference Manual* & *ESP-IDF Programming Guide: Strapping Pins and GPIO Matrix*.
+6. **Fastify Team.** *Fastify Framework Reference Documentation with TypeScript*.
+7. **Prisma Team.** *Prisma ORM Documentation: SQLite & Data Migrations*.
+8. **Electron Team.** *Electron Security Recommendations: Context Isolation and Inter-Process Communication*.
+9. **OWASP Foundation.** *IoT Security Verification Standard (ISVS)* & *API Security Top 10*.
