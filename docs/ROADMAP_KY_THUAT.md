@@ -2,7 +2,7 @@
 ## Đề tài: Hệ thống kiểm soát cửa RFID & IoT tích hợp Desktop App (ESP32 + Fastify + Electron)
 
 > **Người thực hiện:** Kỹ sư IoT / Embedded  
-> **Thời gian:** 10 - 14 tuần (Khởi động: 06/10/2026)  
+> **Thời gian:** 10 - 12 tuần (Khởi động chính thức: 01/11/2026 - Hoàn thành trước Tết: 15/01/2027)  
 > **Ghi chú tác giả:** Tài liệu này ghi lại toàn bộ cơ sở lý thuyết, kiến trúc gói tin, bẫy phần cứng thực tế và lộ trình chi tiết từng tuần theo phong cách ghi chép kỹ thuật thực chiến.
 
 ---
@@ -76,58 +76,58 @@
 
 ## PHẦN 3: LỘ TRÌNH THỰC HIỆN CHI TIẾT 10 TUẦN
 
-### Tuần 1: Cài đặt công cụ, Git & Khảo sát phần cứng (06/10 - 12/10)
+### Tuần 1: Cài đặt công cụ, Git & Khảo sát phần cứng (01/11 - 07/11/2026)
 * [ ] Cài đặt VS Code, Git, PlatformIO IDE, Node.js v20 (LTS), Postman.
 * [ ] Tạo kho lưu trữ GitHub `iot-rfid-access-control`, tạo các thư mục: `firmware`, `server`, `desktop`, `docs`.
 * [ ] Kiểm tra bo mạch ESP32: Cắm cáp nạp, cài driver CP210x, nạp code Blink LED trên chân GPIO 2.
 * [ ] Ghi lại video ngắn xác nhận mạch nạp hoạt động tốt.
 
-### Tuần 2: Nối dây & Lập trình Module RC522 (13/10 - 19/10)
+### Tuần 2: Nối dây & Lập trình Module RC522 (08/11 - 14/11/2026)
 * [ ] Nối dây RC522 qua chuẩn SPI: SDA->GPIO 5, SCK->GPIO 18, MOSI->GPIO 23, MISO->GPIO 19, RST->GPIO 22.
 * [ ] Nạp chương trình mẫu đọc thẻ: Lấy được mã UID (ví dụ `A4:3C:9B:10`) in ra Serial Monitor tốc độ 115200.
 * [ ] Lập trình cơ cấu chấp hành: Nối Relay vào GPIO 26, Buzzer vào GPIO 12, LED Xanh/Đỏ vào GPIO 27/14.
 * [ ] Viết hàm `testHardware()`: Quẹt thẻ bất kỳ -> Relay đóng 3 giây, LED xanh bật; rút thẻ ra -> kêu 1 tiếng bíp.
 
-### Tuần 3: Thiết kế Database & Đặc tả REST API (20/10 - 26/10)
+### Tuần 3: Thiết kế Database & Đặc tả REST API (15/11 - 21/11/2026)
 * [ ] Vẽ sơ đồ thực thể mối quan hệ (ERD): `User`, `Resident`, `Card`, `Door`, `AccessLog`, `SecurityAlert`.
 * [ ] Viết tài liệu đặc tả API chuẩn: Input format, Header xác thực, Output status code.
 * [ ] Chuẩn bị kịch bản kiểm thử: Phân loại 10 mã trạng thái (`ACCESS_GRANTED`, `CARD_BLOCKED`,...).
 
-### Tuần 4: Xây dựng Backend Fastify + Prisma + SQLite (27/10 - 02/11)
+### Tuần 4: Xây dựng Backend Fastify + Prisma + SQLite (22/11 - 28/11/2026)
 * [ ] Khởi tạo dự án Node.js TypeScript: Cấu hình `tsconfig.json`, `package.json`.
 * [ ] Viết file `prisma/schema.prisma` và chạy lệnh `npx prisma migrate dev --name init`.
 * [ ] Viết seed script tạo dữ liệu mẫu: 1 Admin, 3 Cư dân, 5 Thẻ với các trạng thái khác nhau.
 * [ ] Dựng endpoint `GET /api/health` và cấu hình CORS cho phép Desktop App gọi vào.
 
-### Tuần 5: Hoàn thiện CRUD nghiệp vụ Backend (03/11 - 09/11)
+### Tuần 5: Hoàn thiện CRUD nghiệp vụ Backend (29/11 - 05/12/2026)
 * [ ] Viết API Quản lý Cư dân: Thêm, sửa, xóa, tìm kiếm theo tên hoặc căn hộ.
 * [ ] Viết API Quản lý Thẻ: Gán thẻ cho cư dân, cập nhật trạng thái (`ACTIVE`, `BLOCKED`, `REVOKED`).
 * [ ] Viết API Quản lý Cửa: Tạo Device Token riêng biệt cho từng cổng ESP32.
 * [ ] Dùng Postman chạy toàn bộ Collection kiểm thử tự động.
 
-### Tuần 6: Tích hợp ESP32 gọi API xác thực thời gian thực (10/11 - 16/11)
+### Tuần 6: Tích hợp ESP32 gọi API xác thực thời gian thực (06/12 - 12/12/2026)
 * [ ] Lập trình ESP32 kết nối Wi-Fi tự động; tự động reconnect nếu mất tín hiệu.
 * [ ] Khi RC522 phát hiện thẻ: Lấy UID, đóng gói JSON và gửi HTTP POST lên Server.
 * [ ] Nhận JSON phản hồi từ Server: Nếu `allowed = true` thì mở relay; nếu `false` thì bật còi báo động.
 * [ ] Đo thời gian phản hồi: Từ lúc chạm thẻ vào đầu đọc đến lúc relay kêu "tách" (mục tiêu: < 300ms trong mạng LAN).
 
-### Tuần 7: Ghi nhận Log & Thuật toán phát hiện bất thường (17/11 - 23/11)
+### Tuần 7: Ghi nhận Log & Thuật toán phát hiện bất thường (13/12 - 19/12/2026)
 * [ ] Server tự động lưu mỗi lượt quẹt vào bảng `AccessLog`.
 * [ ] Cài đặt thuật toán phát hiện bất thường: Nếu trong vòng 60 giây có 3 lần quẹt thẻ lạ hoặc thẻ bị khóa liên tiếp tại cùng 1 cửa -> Tạo một bản ghi cảnh báo nguy hiểm trong `SecurityAlert`.
 * [ ] Thêm mã hóa bcrypt cho mật khẩu Admin và sinh token JWT khi đăng nhập.
 
-### Tuần 8: Xây dựng giao diện Desktop App với Electron + React (24/11 - 30/11)
+### Tuần 8: Xây dựng giao diện Desktop App với Electron + React (20/12 - 26/12/2026)
 * [ ] Khởi tạo template Electron + React + Vite + TypeScript.
 * [ ] Cấu hình kiến trúc: Main process quản lý cửa sổ Windows, Renderer process hiển thị giao diện React.
 * [ ] Dựng Layout chuẩn: Sidebar định hướng, Header hiển thị thông tin tài khoản Admin đang trực.
 * [ ] Xây dựng màn hình **Dashboard**: Các thẻ thống kê số thẻ active, số lượt ra vào trong ngày.
 
-### Tuần 9: Hoàn thiện các màn hình quản trị trên Desktop (01/12 - 07/12)
+### Tuần 9: Hoàn thiện các màn hình quản trị trên Desktop (27/12 - 02/01/2027)
 * [ ] Màn hình **Quản lý Thẻ**: Bảng dữ liệu có tìm kiếm, nút Switch Khóa/Mở thẻ tức thời.
 * [ ] Màn hình **Lịch sử ra vào**: Phân trang, lọc theo kết quả (Thành công/Thất bại), xuất file báo cáo.
 * [ ] Màn hình **Cảnh báo an ninh**: Hộp thông báo màu đỏ nhấp nháy khi phát hiện sự kiện bất thường.
 
-### Tuần 10: Cơ chế Offline Cache & Đóng gói sản phẩm (08/12 - 14/12)
+### Tuần 10: Cơ chế Offline Cache, đóng gói sản phẩm & nghiệm thu (03/01 - 15/01/2027)
 * [ ] Lập trình bộ nhớ Flash ESP32 (LittleFS / NVS): Lưu danh sách 50 thẻ hợp lệ cục bộ.
 * [ ] Khi mất Wi-Fi: ESP32 tự chuyển sang chế độ Offline, kiểm tra thẻ qua cache Flash để mở cửa, lưu log vào bộ nhớ tạm.
 * [ ] Khi có Wi-Fi lại: Tự động gửi gói tin sync đồng bộ toàn bộ log tạm về server.

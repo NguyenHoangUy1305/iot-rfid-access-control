@@ -7,7 +7,7 @@
 
 > **Tên đề tài tốt nghiệp / đồ án:** Xây dựng hệ thống kiểm soát truy cập cửa ứng dụng RFID và IoT, tích hợp phần mềm quản lý desktop và cơ chế phát hiện truy cập bất thường  
 > **Tác giả:** Kỹ sư IoT & Hệ thống nhúng (NguyenHoangUy1305)  
-> **Thời gian:** Tháng 10/2026 - Tháng 02/2027 (Khởi động: 06/10/2026)  
+> **Thời gian:** Tháng 11/2026 - Tháng 01/2027 (Khởi động chính thức: 01/11/2026)
 > **Mục tiêu:** Xây dựng giải pháp kiểm soát ra vào cấp doanh nghiệp với khả năng chịu lỗi ngoại tuyến (Offline Caching), bảo vệ mạch chống xung áp ngược Back-EMF và giao diện giám sát thời gian thực.
 
 ---
