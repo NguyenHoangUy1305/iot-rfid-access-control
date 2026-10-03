@@ -1,11 +1,11 @@
-# 📘 SỔ TAY KỸ THUẬT CHUYÊN SÂU — BẢN CHỐT v1.1
+# 📘 SỔ TAY KỸ THUẬT CHUYÊN SÂU — BẢN FINAL CHUẨN
 ## Sơ đồ kỹ thuật, quy trình và cơ sở lý thuyết
 ### Hệ thống kiểm soát cửa RFID & IoT: ESP32 + RC522 + Fastify + Electron
 
 > **Tác giả:** NguyenHoangUy1305  
 > **Repository:** `NguyenHoangUy1305/iot-rfid-access-control`  
-> **Phiên bản:** 1.1 — MVP và hướng nâng cấp  
-> **Phạm vi an toàn:** Chỉ mô hình DC điện áp thấp 3.3 V / 5 V / 12 V; không đấu điện lưới 220 V.
+> **Phiên bản:** Final Chuẩn — MVP và hướng nâng cấp  
+> **Phạm vi an toàn:** Mô hình DC 3.3 V / 5 V / 12 V; không đấu điện lưới 220 V.
 
 ---
 
@@ -14,21 +14,21 @@
 ### 1.1 Mục tiêu MVP
 
 ```text
-RFID card → RC522/SPI → ESP32 → Fastify API → Database
+RFID card → RC522/SPI → ESP32 → Fastify API → SQLite database
                                    ↓
-                           Relay + LED + Buzzer
+                          Relay + LED + Buzzer
 
 Electron + React → Fastify REST API → quản lý cư dân/thẻ/log/alert
 ```
 
-MVP gồm đọc UID, server-side authorization, device token, card lifecycle, quyền theo cửa, audit log, anomaly rules, Electron CRUD, whitelist offline và idempotent event sync.
+MVP gồm đọc/chuẩn hóa UID, server-side authorization, device token, card lifecycle, quyền theo cửa, audit log, anomaly rules, Electron CRUD, whitelist offline và idempotent event sync.
 
 ### 1.2 Giới hạn bảo mật
 
-- UID là định danh kỹ thuật; không phải bí mật.
-- MIFARE Classic/RC522 không được tuyên bố chống clone tuyệt đối.
-- Bảo mật MVP dựa vào device token, trạng thái card phía server, permission theo cửa, audit log, offline policy và alert rules.
-- Access log trong MVP là audit record để truy vết; không tuyên bố immutable/non-repudiation nếu chưa có append-only database policy, chữ ký số hoặc hash chain.
+- UID là định danh kỹ thuật, không phải bí mật.
+- Không tuyên bố MIFARE Classic/RC522 chống clone tuyệt đối.
+- MVP dựa trên device token, card lifecycle, quyền theo cửa, audit log, offline policy và anomaly rules.
+- AccessLog là audit record để truy vết; không tuyên bố immutable/non-repudiation nếu chưa có append-only policy, chữ ký số hoặc hash chain được bảo vệ.
 - Counter trong card là Advanced Feature; chỉ hỗ trợ phát hiện dữ liệu cũ/rollback trong một số tình huống.
 
 ---
@@ -39,7 +39,7 @@ MVP gồm đọc UID, server-side authorization, device token, card lifecycle, q
 
 MFRC522 là frontend RFID/NFC HF 13.56 MHz dùng với ISO/IEC 14443 A/MIFARE. Reader và thẻ passive ghép cảm ứng qua anten cuộn dây trong vùng gần.
 
-$$\lambda = rac{c}{f} = rac{3	imes10^8}{13.56	imes10^6} pprox 22.12	ext{ m}$$
+$$\lambda = \frac{c}{f} = \frac{3 \times 10^8}{13.56 \times 10^6} \approx 22.12\text{ m}$$
 
 Ranh giới vùng gần theo mô hình anten không phải khoảng cách đọc card. Khoảng cách đọc RC522 phụ thuộc loại thẻ, anten, nguồn 3.3 V, dây SPI, vật kim loại và môi trường. Dự án phải đo trên hardware thật; không coi 1–4 cm là thông số đảm bảo cho mọi module.
 
@@ -47,13 +47,13 @@ Ranh giới vùng gần theo mô hình anten không phải khoảng cách đọc
 
 Từ trường biến thiên tạo điện áp cảm ứng trên anten card:
 
-$$e = -Nrac{d\Phi}{dt}$$
+$$e = -N\frac{d\Phi}{dt}$$
 
-Mạch nội card chỉnh lưu năng lượng này để cấp nguồn tạm thời cho IC. Giá trị điện dung hoặc điện áp nội cụ thể phụ thuộc chip/thẻ; không dùng một giá trị chung cho mọi card.
+Mạch nội card chỉnh lưu năng lượng này để cấp nguồn tạm thời cho IC. Giá trị điện dung và điện áp nội phụ thuộc chip/thẻ cụ thể; không dùng một giá trị chung cho mọi card.
 
 ### 2.3 Load modulation
 
-Card passive thay đổi tải hiệu dụng trên anten để tạo thay đổi nhỏ reader có thể nhận biết. Điều chế/coding chi tiết phụ thuộc ISO/IEC 14443 A và tốc độ giao tiếp; chúng không phải tiêu chí hiệu năng bắt buộc của MVP.
+Card passive thay đổi tải hiệu dụng trên anten để tạo thay đổi nhỏ reader có thể nhận biết. Điều chế/coding chi tiết phụ thuộc ISO/IEC 14443 A và tốc độ giao tiếp; không phải tiêu chí hiệu năng bắt buộc của MVP.
 
 ### 2.4 MIFARE Classic 1K
 
@@ -66,8 +66,8 @@ Block 3 mỗi sector là Sector Trailer.
 |---|---:|---|
 | Data block | 16 byte | Dữ liệu ứng dụng |
 | Key A | 6 byte | Khóa xác thực sector |
-| Access bits | 3 byte + byte kiểm tra | Quyền truy cập block |
-| Key B | 6 byte | Khóa phụ tùy cấu hình |
+| Access Bits | 3 byte + byte kiểm tra | Quy định quyền đọc/ghi và vai trò Key B |
+| Key B | 6 byte | Khóa xác thực phụ hoặc dữ liệu, tùy Access Bits |
 
 Sector 0 Block 0 là Manufacturer Block. Tùy loại UID, nó chứa UID, byte kiểm tra liên quan và dữ liệu manufacturer. ATQA/SAK là thông tin trao đổi trong anti-collision/select, không phải dữ liệu cố định cần mô tả như byte ứng dụng trong block. MVP chỉ đọc UID để tra server; không yêu cầu đọc/ghi sector hoặc Key A/Key B.
 
@@ -75,11 +75,11 @@ Sector 0 Block 0 là Manufacturer Block. Tùy loại UID, nó chứa UID, byte k
 
 Solenoid DC là tải điện trở–cảm kháng. Mô hình lý thuyết:
 
-$$E=rac{1}{2}LI^2$$
+$$E = \frac{1}{2}LI^2$$
 
-$$V_L=-Lrac{di}{dt}$$
+$$V_L = -L\frac{di}{dt}$$
 
-Khi relay ngắt, cuộn cảm tạo điện áp ngược; biên độ thực phụ thuộc solenoid, dòng, wiring và phần tử bảo vệ. Không dùng một giá trị dòng, độ tự cảm hay xung áp cố định cho mọi khóa.
+Khi relay ngắt, cuộn cảm tạo điện áp ngược; biên độ thực phụ thuộc solenoid, dòng, wiring và phần tử bảo vệ. Không dùng giá trị dòng, độ tự cảm hay xung áp cố định cho mọi khóa.
 
 Flyback diode mắc ngược song song solenoid:
 
@@ -92,7 +92,7 @@ Khi relay ngắt, diode dẫn và tạo vòng hồi dòng. Nó giới hạn đi�
 
 ### 2.6 Relay module và optocoupler
 
-Optocoupler PC817 trên một số relay module có thể giảm ảnh hưởng nhiễu lên input logic, nhưng không tự động tạo cách ly galvanic hoàn toàn. Mức cách ly tùy thiết kế VCC/JD-VCC, jumper, GND, nguồn coil và mạch input của module.
+Optocoupler PC817 trên một số relay module có thể giảm ảnh hưởng nhiễu lên input logic, nhưng không tự động tạo cách ly galvanic hoàn toàn. Mức cách ly tùy thiết kế VCC/JD-VCC, jumper, GND, nguồn coil và mạch input.
 
 Nếu chưa có schematic/datasheet đúng module, dùng chung GND là thiết kế bình thường cho MVP; tập trung vào diode flyback, nguồn đủ dòng, tụ lọc và routing dây. Không khẳng định “rút jumper là luôn cách ly hoàn toàn”.
 
@@ -102,7 +102,7 @@ Nếu chưa có schematic/datasheet đúng module, dùng chung GND là thiết k
 - Tụ 100 nF có thể hỗ trợ lọc nhiễu nhanh.
 - Nếu tính RC với 10 kΩ và 100 nF thì cần điện trở ngoài 10 kΩ:
 
-$$	au=RC=10\,000	imes100	imes10^{-9}=1	ext{ ms}$$
+$$\tau = RC = 10\,000\ \Omega \times 100 \times 10^{-9}\ \text{F} = 1\text{ ms}$$
 
 RC 1 ms không thay thế software debounce. Pull-up nội ESP32 không được giả định là đúng 10 kΩ.
 
@@ -121,23 +121,21 @@ CRC32 dùng phát hiện lỗi dữ liệu ngẫu nhiên hoặc cache ghi không
 
 ### 3.1 Pinout
 
-Pinout này giảm nguy cơ boot conflict; nó không loại trừ tuyệt đối lỗi boot. Cần test trên board, relay và nguồn thật.
+Pinout giảm nguy cơ boot conflict; không loại trừ tuyệt đối lỗi boot. Test trên board, relay và nguồn thật.
 
 | Thiết bị | Chân | ESP32 | Ghi chú |
 |---|---|---:|---|
 | RC522 | VCC/GND | 3V3/GND | Chỉ cấp 3.3 V trừ khi datasheet module xác nhận khác |
 | RC522 | SS/SCK/MOSI/MISO/RST | 21/18/23/19/22 | SPI |
 | Relay | IN | GPIO26 | Test active-low/high và logic 3.3 V |
-| Buzzer | Signal | GPIO25 | Chỉ direct nếu 3.3 V dòng thấp; nếu không dùng driver |
+| Buzzer | Signal | GPIO25 | Direct chỉ với buzzer 3.3 V dòng thấp; nếu không dùng driver |
 | LED xanh | Anode | GPIO27 + 220–330 Ω | Cathode GND |
 | LED đỏ | Anode | GPIO33 + 220–330 Ω | Cathode GND |
 | Exit | Chân 1/2 | GPIO32/GND | `INPUT_PULLUP`, active-low |
 
-Tránh dùng GPIO0, 2, 4, 5, 12 và 15 cho relay/buzzer/button nếu chưa hiểu ảnh hưởng strapping trên board cụ thể.
+Tránh dùng GPIO0, GPIO2, GPIO4, GPIO5, GPIO12 và GPIO15 cho relay/buzzer/button nếu chưa hiểu ảnh hưởng strapping trên board cụ thể.
 
-### 3.2 Khởi tạo relay
-
-Với relay active-low, cần kiểm thử boot/reset thật. Ví dụ Arduino:
+### 3.2 Khởi tạo relay active-low
 
 ```cpp
 constexpr uint8_t PIN_RELAY = 26;
@@ -151,13 +149,13 @@ pinMode(PIN_RELAY, OUTPUT);
 
 ### 3.3 Wiring high-side solenoid
 
-Topology dưới đây giả định khóa **fail-secure**: cấp điện để nhả chốt; mất điện giữ khóa. Phải xác nhận loại khóa thực tế. Maglock fail-safe cần logic/tiếp điểm khác và phải xét yêu cầu PCCC.
+Topology dưới đây giả định khóa fail-secure: cấp điện để nhả chốt, mất điện giữ khóa. Maglock fail-safe cần logic/tiếp điểm khác và phải xét yêu cầu PCCC.
 
 ```text
 +12 V adapter → Relay COM → Relay NO → Solenoid (+)
 Solenoid (−) → GND adapter
 
-Flyback diode trực tiếp tại solenoid:
+Flyback diode tại solenoid:
 Cathode → Solenoid (+)
 Anode   → Solenoid (−)
 ```
@@ -246,7 +244,7 @@ Content-Type: application/json
 }
 ```
 
-Database chỉ lưu `tokenHash`; raw device token chỉ nằm trong secret/config không commit Git. Nonce/HMAC replay protection là Advanced Feature trừ khi có thiết kế hoàn chỉnh nonce TTL và request signing.
+Database chỉ lưu `tokenHash`; raw token chỉ nằm trong secret/config không commit Git. Nonce/HMAC replay protection là Advanced Feature trừ khi có thiết kế nonce TTL và request signing hoàn chỉnh.
 
 ### 4.3 Flowchart
 
